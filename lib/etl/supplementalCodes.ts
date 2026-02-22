@@ -8,7 +8,7 @@
  *  - McMaster: Health Sciences (MNS), iBioMed (MEH/MEI), Integrated Science (MIS), Arts & Science (MX)
  *  - UofT Engineering: all programs in the Faculty of Applied Science & Engineering
  *  - UofT Rotman Commerce (TAC): supplemental assessment required
- *  - Queen's: Commerce (QC), Engineering (QE/QEC/QEM/QF/QS), Health Sciences (QH)
+ *  - Queen's: Commerce (QC), Health Sciences (QH)
  *  - Western: Ivey AEO (WIVEY), Medical Sciences (ESM)
  *  - Schulich / York: BBA (YBA)
  *  - Laurier double-degree programs (Waterloo component requires AIF): UWB, UWW, UXA
@@ -66,11 +66,6 @@ export const SUPPLEMENTAL_CODES = new Set<string>([
 
   // ─── Queen's University ─────────────────────────────────────────────────────
   'QC',  // Commerce — supplemental
-  'QE',  // Engineering (General first year) — AIF
-  'QEC', // Engineering (Civil) — AIF
-  'QEM', // Engineering (Mechatronics & Robotics) — AIF
-  'QF',  // Engineering (Computing) — AIF
-  'QS',  // Engineering (Software) — AIF
   'QH',  // Health Sciences — supplemental required
 
   // ─── Western University ─────────────────────────────────────────────────────
