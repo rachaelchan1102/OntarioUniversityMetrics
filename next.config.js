@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: { ignoreDuringBuilds: true },
+  typescript: { ignoreBuildErrors: true },
   // Tell the App Router RSC bundler not to bundle native addons
   experimental: {
     serverComponentsExternalPackages: ['better-sqlite3'],

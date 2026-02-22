@@ -21,7 +21,7 @@ export async function GET(req: Request) {
   if (!slug) {
     return new Response(JSON.stringify({ program: null }), { status: 400 });
   }
-  const rows = getProgramRows(slug, year);
+  const rows = getProgramRows(slug, year) as any[];
   if (!rows.length) {
     return new Response(JSON.stringify({ program: null }), { status: 404 });
   }
