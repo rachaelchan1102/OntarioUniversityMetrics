@@ -6,7 +6,7 @@
 //     - all Engineering (except Architecture), all Math faculty, CFM, Geography & Aviation, Science & Aviation
 //   McMaster: Health Sciences (MNS), iBioMed (MEH/MEI), Integrated Science (MIS), Arts & Science (MX)
 //   UofT Engineering: all Faculty of Applied Science & Engineering programs
-//   UofT Rotman Commerce (TAC): supplemental assessment
+//   UofT Rotman Commerce (TAC) and Computer Science (TAD): supplemental assessment
 //   Queen's: Commerce (QC), Health Sciences (QH)
 //   Western: Ivey AEO (WIVEY), Medical Sciences (ESM)
 //   Schulich/York: BBA (YBA)
@@ -60,6 +60,7 @@ export const SUPPLEMENTAL_CODES = new Set<string>([
   'TV',  // Civil Engineering
   // Commerce
   'TAC', // Rotman Commerce (St. George) — supplemental assessment required
+  'TAD', // Computer Science (Arts & Science) — supplemental required
 
   // Queen's University
   'QC',  // Commerce — supplemental
