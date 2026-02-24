@@ -21,7 +21,8 @@ export default function ProgramPage() {
   const year = searchParams.get('year') || 'ALL';
 
   const [program, setProgram] = useState<any>(null);
-  const [rows, setRows] = useState<any[]>([]);
+  const [allRows, setAllRows] = useState<any[]>([]);
+  const rows = year === 'ALL' ? allRows : allRows.filter(r => r.academic_year === year);
   const [allYears, setAllYears] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -34,7 +35,7 @@ export default function ProgramPage() {
       // Only overwrite program when we actually get one back — preserves
       // header + year filter when a specific year has no rows
       if (programData.program) setProgram(programData.program);
-      setRows(programData.rows ?? []);
+      setAllRows(programData.rows ?? []);
       setAllYears(yearsData.years ?? []);
     }).finally(() => setLoading(false));
   }, [slug, year]);
@@ -43,7 +44,27 @@ export default function ProgramPage() {
   const noDataForYear = !loading && !!program && rows.length === 0;  // program exists, but no rows for this filter
   const grades = rows.map((r: any) => r.admission_grade as number);
   const kpis = rows.length ? computeKPIs(rows) : null;
-  const yoy = year === 'ALL' ? computeYoY(rows) : null;
+
+  // Compute year-over-year change for selected year (if not ALL)
+  let yoy: number | null = null;
+  let prevYear: string | null = null;
+  if (year === 'ALL') {
+    yoy = computeYoY(allRows);
+  } else if (year && year !== 'ALL' && allYears.length > 1) {
+    // Ensure years are sorted ascending (oldest to newest)
+    const sortedYears = [...allYears].sort();
+    const idx = sortedYears.indexOf(year);
+    if (idx > 0) {
+      prevYear = sortedYears[idx - 1];
+      const thisYearRows = allRows.filter(r => r.academic_year === year);
+      const prevYearRows = allRows.filter(r => r.academic_year === prevYear);
+      if (thisYearRows.length && prevYearRows.length) {
+        const thisAvg = thisYearRows.reduce((a, b) => a + b.admission_grade, 0) / thisYearRows.length;
+        const prevAvg = prevYearRows.reduce((a, b) => a + b.admission_grade, 0) / prevYearRows.length;
+        yoy = thisAvg - prevAvg;
+      }
+    }
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0f1a2b]">
@@ -162,7 +183,7 @@ export default function ProgramPage() {
                     <StatCard
                       label="Grade Inflation"
                       value={(yoy >= 0 ? '+' : '') + yoy.toFixed(2) + '%'}
-                      sub="avg change per year"
+                      sub={year === 'ALL' ? 'avg change per year' : (prevYear ? `vs ${prevYear}` : 'vs prev year')}
                       color={yoy >= 0 ? 'mint' : 'pink'}
                       icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={yoy >= 0 ? 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6' : 'M13 17h8m0 0V9m0 8l-8-8-4 4-6-6'} /></svg>}
                     />

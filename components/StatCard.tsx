@@ -27,9 +27,9 @@ export default function StatCard({ label, value, sub, icon, color = 'blue', clas
           <span className={p.iconText}>{icon}</span>
         </div>
       )}
-      <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 dark:text-slate-300">{label}</p>
+      <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 dark:text-slate-200">{label}</p>
       <p className={`text-2xl font-bold mt-1 leading-tight ${p.val}`}>{value}</p>
-      {sub && <p className="text-sm mt-1 text-slate-500 dark:text-slate-400">{sub}</p>}
+      {sub && <p className="text-sm mt-1 text-slate-500 dark:text-slate-300">{sub}</p>}
     </div>
   );
 }

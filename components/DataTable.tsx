@@ -25,24 +25,24 @@ export default function DataTable({ rows }: { rows: Row[] }) {
         <table className="w-full text-sm text-left">
           <thead>
             <tr className="border-b border-slate-200 dark:border-slate-700">
-              <th className="py-2.5 pr-6 font-medium text-slate-500 dark:text-slate-400">Year</th>
-              <th className="py-2.5 pr-6 font-medium text-slate-500 dark:text-slate-400">Grade</th>
-              <th className="py-2.5 font-medium text-slate-500 dark:text-slate-400">Round / Month</th>
+              <th className="py-2.5 pr-6 font-medium text-slate-500 dark:text-slate-200">Year</th>
+              <th className="py-2.5 pr-6 font-medium text-slate-500 dark:text-slate-200">Grade</th>
+              <th className="py-2.5 font-medium text-slate-500 dark:text-slate-200">Round / Month</th>
             </tr>
           </thead>
           <tbody>
             {slice.map((r) => (
               <tr key={r.id} className="border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-white/5">
-                <td className="py-2.5 pr-6 text-slate-600 dark:text-slate-300">{r.academic_year}</td>
+                <td className="py-2.5 pr-6 text-slate-600 dark:text-slate-200">{r.academic_year}</td>
                 <td className="py-2.5 pr-6 font-semibold text-slate-900 dark:text-white">{r.admission_grade.toFixed(1)}%</td>
-                <td className="py-2.5 text-slate-500 dark:text-slate-400">{r.admission_month_label || r.round_label || '—'}</td>
+                <td className="py-2.5 text-slate-500 dark:text-slate-300">{r.admission_month_label || r.round_label || '—'}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
       {pages > 1 && (
-          <div className="flex items-center justify-between mt-4 text-sm text-slate-500 dark:text-slate-400">
+          <div className="flex items-center justify-between mt-4 text-sm text-slate-500 dark:text-slate-300">
           <span>{rows.length} records</span>
           <div className="flex items-center gap-2">
             <button

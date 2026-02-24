@@ -69,9 +69,9 @@ function KPICard({
         <span className={c.iconText}>{icon}</span>
       </div>
       <div className="min-w-0">
-        <p className="text-xs font-medium mb-0.5 text-slate-500 dark:text-slate-400">{label}</p>
+        <p className="text-xs font-medium mb-0.5 text-slate-500 dark:text-slate-200">{label}</p>
         <p className={`text-2xl font-bold leading-tight ${c.val}`}>{value}</p>
-        {sub && <p className="text-xs mt-0.5 text-slate-400 dark:text-slate-500">{sub}</p>}
+        {sub && <p className="text-xs mt-0.5 text-slate-400 dark:text-slate-300">{sub}</p>}
       </div>
     </div>
   );
@@ -83,7 +83,7 @@ function NotesDropdown() {
     <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e2a3a] overflow-hidden shadow-sm">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-5 py-4 text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 transition"
+        className="w-full flex items-center justify-between px-5 py-4 text-sm font-medium text-slate-500 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 transition"
       >
         <span className="flex items-center gap-2">
           <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,7 +96,7 @@ function NotesDropdown() {
         </svg>
       </button>
       {open && (
-        <div className="px-5 pb-5 pt-1 space-y-3 text-sm text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-700">
+        <div className="px-5 pb-5 pt-1 space-y-3 text-sm text-slate-500 dark:text-slate-300 border-t border-slate-100 dark:border-slate-700">
           <div className="flex gap-2.5 pt-2">
             <span className="mt-0.5 shrink-0 text-amber-500">⚠</span>
             <p><span className="font-medium text-slate-700 dark:text-slate-200">Supplemental Required</span>{' '}indicates that admission is based on more than grades alone — portfolio, audition, or other criteria may apply.</p>
@@ -106,7 +106,7 @@ function NotesDropdown() {
             <p><span className="font-medium text-slate-700 dark:text-slate-200">Grade data is a subset</span>{' '}of all admitted students — only those who voluntarily shared results are captured here.</p>
           </div>
           <div className="flex gap-2.5">
-            <span className="mt-0.5 shrink-0 text-slate-400">🔗</span>
+            <span className="mt-0.5 shrink-0 text-slate-300">🔗</span>
             <p><span className="font-medium text-slate-700 dark:text-slate-200">Data source:</span>{' '}
               Sourced from <a href="https://www.reddit.com/r/OntarioGrade12s/" target="_blank" rel="noopener noreferrer" className="text-teal-600 dark:text-teal-400 hover:underline">r/OntarioGrade12s</a>.
             </p>
@@ -145,7 +145,7 @@ export default function HomePage() {
         {/* Page title */}
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Ontario University Admissions Data Explorer</h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Explore historical admission trends, grade distributions, competitiveness, and deviations from university published averages across Ontario university programs.</p>
+          <p className="text-slate-500 dark:text-slate-300 text-sm mt-1">Explore historical admission trends, grade distributions, competitiveness, and deviations from university published averages across Ontario university programs.</p>
         </div>
 
         {/* KPI Cards */}
@@ -174,12 +174,21 @@ export default function HomePage() {
 
         {/* Chart + Search side by side on large screens */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+          {/* Search + mini stats (now always first) */}
+          <div className="lg:col-span-2 flex flex-col gap-4 order-1">
+            <div className="bg-white dark:bg-[#1e2a3a] rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-5 flex-1">
+              <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-1">Find a Program</p>
+              <p className="text-xs text-slate-400 dark:text-slate-300 mb-3">Search by name, university, or OUAC code</p>
+              <SearchBar autoFocus />
+              <p className="text-xs text-slate-400 dark:text-slate-300 mt-2">e.g. &ldquo;Computer Science&rdquo;, &ldquo;Waterloo&rdquo;, &ldquo;WCS&rdquo;</p>
+            </div>
+          </div>
           {/* Trend chart */}
-          <div className="lg:col-span-3 bg-white dark:bg-[#1e2a3a] rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
-            <div className="px-5 pt-5 pb-2 flex items-start justify-between">
+          <div className="lg:col-span-3 bg-white dark:bg-[#1e2a3a] rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm order-2">
+            <div className="px-5 pt-5 pb-2 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
               <div>
                 <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Average Admission Grade by Year</h2>
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Across all programs &amp; universities</p>
+                <p className="text-xs text-slate-400 dark:text-slate-300 mt-0.5">Across all programs &amp; universities</p>
               </div>
               {stats && latestAvg && (
                 <span className="text-xs font-semibold text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 px-2 py-0.5 rounded-full border border-teal-200 dark:border-teal-800">
@@ -193,16 +202,6 @@ export default function HomePage() {
               ) : (
                 <div className="h-[220px] animate-pulse bg-slate-100 dark:bg-slate-700/30 rounded-xl mx-3" />
               )}
-            </div>
-          </div>
-
-          {/* Search + mini stats */}
-          <div className="lg:col-span-2 flex flex-col gap-4">
-            <div className="bg-white dark:bg-[#1e2a3a] rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-5 flex-1">
-              <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-1">Find a Program</p>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">Search by name, university, or OUAC code</p>
-              <SearchBar autoFocus />
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">e.g. &ldquo;Computer Science&rdquo;, &ldquo;Waterloo&rdquo;, &ldquo;WCS&rdquo;</p>
             </div>
           </div>
         </div>
@@ -227,7 +226,7 @@ export default function HomePage() {
                     <div key={u.university}>
                       <div className="flex items-center justify-between text-xs mb-1">
                         <span className="text-slate-600 dark:text-slate-300 font-medium truncate max-w-[70%]">
-                          <span className="text-slate-400 dark:text-slate-500 mr-1.5">#{i + 1}</span>{titleCase(u.university)}
+                          <span className="text-slate-400 dark:text-slate-300 mr-1.5">#{i + 1}</span>{titleCase(u.university)}
                         </span>
                         <span className="font-semibold text-slate-700 dark:text-slate-100 shrink-0 ml-2">{u.avg_grade.toFixed(1)}%</span>
                       </div>
@@ -256,7 +255,7 @@ export default function HomePage() {
                     <div key={u.university}>
                       <div className="flex items-center justify-between text-xs mb-1">
                         <span className="text-slate-600 dark:text-slate-300 font-medium truncate max-w-[70%]">
-                          <span className="text-slate-400 dark:text-slate-500 mr-1.5">#{i + 1}</span>{titleCase(u.university)}
+                          <span className="text-slate-400 dark:text-slate-300 mr-1.5">#{i + 1}</span>{titleCase(u.university)}
                         </span>
                         <span className="font-semibold text-slate-700 dark:text-slate-100 shrink-0 ml-2">{u.avg_grade.toFixed(1)}%</span>
                       </div>

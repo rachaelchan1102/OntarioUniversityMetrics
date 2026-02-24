@@ -21,7 +21,8 @@ export async function GET(req: Request) {
   if (!slug) {
     return new Response(JSON.stringify({ program: null }), { status: 400 });
   }
-  const rows = getProgramRows(slug, year) as any[];
+  // Always fetch all years for this program for stats, but filter on client for display
+  const rows = getProgramRows(slug, 'ALL') as any[];
   if (!rows.length) {
     return new Response(JSON.stringify({ program: null }), { status: 404 });
   }
