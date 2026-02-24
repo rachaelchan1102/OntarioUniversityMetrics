@@ -1,6 +1,6 @@
 'use client';
 import {
-  LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, Dot,
+  AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, Dot,
 } from 'recharts';
 import { useTheme } from './ThemeProvider';
 
@@ -22,8 +22,8 @@ export default function AvgByMonthChart({ rows }: { rows: Row[] }) {
   const tickColor = dark ? '#d1d5db' : '#6b7280';
   const gridColor = dark ? 'rgba(255,255,255,0.06)' : '#e5e7eb';
   const tooltipStyle = dark
-    ? { backgroundColor: '#1f1f1f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#fff' }
-    : { backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, color: '#111' };
+    ? { backgroundColor: '#1e2a3a', border: '1px solid rgba(148,163,184,0.15)', borderRadius: 8, color: '#f1f5f9' }
+    : { backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, color: '#0f172a' };
   const map: Record<string, { sum: number; n: number; order: number }> = {};
   for (const r of rows) {
     const key = r.admission_month_label || r.round_label || 'Unknown';
@@ -43,25 +43,42 @@ export default function AvgByMonthChart({ rows }: { rows: Row[] }) {
   if (!data.length)
     return <p className="text-sm text-gray-500 text-center py-10">No date data available</p>;
 
+  const allAvgs = data.map(d => d.avg);
+  const minVal = Math.floor(Math.min(...allAvgs) - 1);
+  const maxVal = Math.ceil(Math.max(...allAvgs) + 1);
+
   return (
     <ResponsiveContainer width="100%" height={220}>
-      <LineChart data={data} margin={{ top: 4, right: 8, left: -16, bottom: 4 }}>
+      <AreaChart data={data} margin={{ top: 4, right: 8, left: 8, bottom: 4 }}>
+        <defs>
+          <linearGradient id="avgGradeGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#818cf8" stopOpacity={0.25} />
+            <stop offset="95%" stopColor="#818cf8" stopOpacity={0} />
+          </linearGradient>
+        </defs>
         <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
         <XAxis dataKey="label" tick={{ fontSize: 11, fill: tickColor }} />
-        <YAxis domain={['auto', 'auto']} tick={{ fontSize: 11, fill: tickColor }} unit="%" />
+        <YAxis
+          domain={[minVal, maxVal]}
+          tickCount={5}
+          tickFormatter={(v: number) => `${v}%`}
+          tick={{ fontSize: 11, fill: tickColor }}
+          width={42}
+        />
         <Tooltip
           contentStyle={tooltipStyle}
           formatter={(v: number) => [`${v}%`, 'Avg Grade']}
         />
-        <Line
+        <Area
           type="monotone"
           dataKey="avg"
-          stroke="#6366f1"
-          strokeWidth={2}
-          dot={<Dot r={4} fill="#6366f1" />}
-          activeDot={{ r: 5 }}
+          stroke="#818cf8"
+          strokeWidth={2.5}
+          fill="url(#avgGradeGradient)"
+          dot={<Dot r={4} fill="#818cf8" stroke="none" />}
+          activeDot={{ r: 6, fill: '#a5b4fc' }}
         />
-      </LineChart>
+      </AreaChart>
     </ResponsiveContainer>
   );
 }

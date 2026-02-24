@@ -18,10 +18,10 @@ export default function YearFilter({
         <button
           key={y}
           onClick={() => router.push(`${pathname}?year=${y}`)}
-          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+          className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${
             selected === y
-              ? 'bg-indigo-600 text-white shadow-sm'
-              : 'bg-white text-gray-600 border border-gray-200 hover:border-indigo-300 hover:text-indigo-600 dark:bg-white/5 dark:text-gray-400 dark:border-white/10 dark:hover:border-indigo-500 dark:hover:text-indigo-400'
+              ? 'bg-teal-600 text-white shadow-sm'
+              : 'bg-white text-slate-600 border border-slate-200 hover:border-teal-400 hover:text-teal-700 dark:bg-[#1e2a3a] dark:text-slate-400 dark:border-slate-700 dark:hover:border-teal-600 dark:hover:text-teal-400'
           }`}
         >
           {y === 'ALL' ? 'All Years' : y}

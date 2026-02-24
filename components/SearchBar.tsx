@@ -57,7 +57,7 @@ export default function SearchBar({ autoFocus = false }: { autoFocus?: boolean }
 
   return (
     <div ref={containerRef} className="relative w-full">
-      <div className="flex items-center bg-white dark:bg-transparent border border-gray-200 dark:border-white/40 rounded-2xl px-4 py-3 sm:px-5 sm:py-4 gap-3 focus-within:border-indigo-400 dark:focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-500/30 transition shadow-lg dark:shadow-none">
+      <div className="flex items-center bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 gap-2 focus-within:border-teal-400 dark:focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-500/20 transition">
         <svg className="w-4 h-4 text-gray-400 dark:text-gray-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
@@ -67,7 +67,7 @@ export default function SearchBar({ autoFocus = false }: { autoFocus?: boolean }
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search programs, universities, OUAC codes…"
-          className="flex-1 outline-none text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 bg-transparent"
+          className="flex-1 outline-none text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-transparent"
         />
         {query && (
           <button

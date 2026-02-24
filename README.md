@@ -38,6 +38,11 @@ Data is sourced from publicly shared Ontario university admissions spreadsheets.
 npm install
 ```
 
+> **Note:** `better-sqlite3` is a native module and must be compiled against the Node.js version you're running. If you see a `NODE_MODULE_VERSION` mismatch error, run:
+> ```bash
+> npm rebuild better-sqlite3
+> ```
+
 ### Database Setup
 
 The app uses a local SQLite database. CSV data is included in the repo. Build the database with:

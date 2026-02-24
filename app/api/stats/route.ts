@@ -26,8 +26,35 @@ export async function GET() {
     WHERE ouac_code IS NOT NULL
   `).get() as any;
 
+  const yearly_averages = db.prepare(`
+    SELECT academic_year,
+           ROUND(AVG(admission_grade), 1) AS avg_grade,
+           COUNT(*) AS n
+    FROM admissions
+    WHERE admission_grade IS NOT NULL
+    GROUP BY academic_year
+    ORDER BY academic_year ASC
+  `).all() as { academic_year: string; avg_grade: number; n: number }[];
+
+  const { overall_avg } = db.prepare(`
+    SELECT ROUND(AVG(admission_grade), 1) AS overall_avg
+    FROM admissions
+    WHERE admission_grade IS NOT NULL
+  `).get() as any;
+
+  const university_averages = db.prepare(`
+    SELECT university_norm AS university,
+           ROUND(AVG(admission_grade), 1) AS avg_grade,
+           COUNT(*) AS n
+    FROM admissions
+    WHERE admission_grade IS NOT NULL AND ouac_code IS NOT NULL
+    GROUP BY university_norm
+    HAVING n >= 5
+    ORDER BY avg_grade DESC
+  `).all() as { university: string; avg_grade: number; n: number }[];
+
   return new Response(
-    JSON.stringify({ total_records, total_programs, total_universities, min_year, max_year }),
+    JSON.stringify({ total_records, total_programs, total_universities, min_year, max_year, yearly_averages, overall_avg, university_averages }),
     { status: 200 }
   );
 }
