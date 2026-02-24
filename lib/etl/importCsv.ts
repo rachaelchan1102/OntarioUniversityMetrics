@@ -84,9 +84,8 @@ export async function importAllCSVs({ rebuild = false } = {}) {
 				const val = rec[mapping.supplemental_required];
 				supplemental_required = /yes|1|true/i.test(String(val)) ? 1 : 0;
 			}
-			// OUAC code — validate and canonicalize via OUAC authority.
-			// If matchToOuac() can't verify the user-supplied code, store NULL so
-			// garbage strings like "idk", "n/a", "ouac" never pollute grouping.
+			// validate and canonicalize the OUAC code
+			// if we can't verify it, store null — garbage like "idk", "n/a" etc. shouldn't pollute grouping
 			const rawOuacCode = mapping.ouac_code ? rec[mapping.ouac_code] || null : null;
 			let ouac_code: string | null = null;
 			let canonical_program_norm = program_name_norm;
@@ -125,7 +124,7 @@ export async function importAllCSVs({ rebuild = false } = {}) {
 	const missingOuacRows = allRows.filter(r => !r.ouac_code);
 	if (missingOuacRows.length) {
 		const { updated, unmatched } = backfillOuac(missingOuacRows, ouacMap, allRows, logUnmatchedOUAC);
-		// Update allRows with backfilled codes
+		// patch allRows in-place with the backfilled codes
 		for (let i = 0; i < allRows.length; ++i) {
 			if (!allRows[i].ouac_code) {
 				allRows[i].ouac_code = updated.shift()?.ouac_code || null;

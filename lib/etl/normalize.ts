@@ -1,6 +1,6 @@
 // General normalization logic
 
-// ─── University normalization ───────────────────────────────────────────────
+// University normalization
 
 const UNIVERSITY_CANONICAL: Record<string, string> = {
 	// University of Toronto
@@ -95,11 +95,10 @@ export function normalizeUniversity(raw: string): string {
 	return cleaned;
 }
 
-// ─── Program name normalization ──────────────────────────────────────────────
-
-// Removes noise like co-op, honours, degree type, campus, university name prefix
-// so that "Computer Science (Co-op)", "Computer Science Honours Co-op",
-// "B. Computer Science Honours" all become "computer science"
+// Program name normalization
+// strips noise like co-op, honours, degree type, campus, university prefix
+// so "Computer Science (Co-op)", "Computer Science Honours Co-op",
+// "B. Computer Science Honours" all normalize to "computer science"
 export function normalizeProgram(rawProgram: string, rawUniversity: string): string {
 	if (!rawProgram) return '';
 	let p = rawProgram.trim();

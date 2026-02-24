@@ -1,45 +1,20 @@
-/**
- * Published admission averages by OUAC code.
- *
- * Only includes averages explicitly stated on each university's official
- * admissions / future-students program page. Nothing is inferred or estimated.
- *
- * Sources:
- *   University of Waterloo: https://uwaterloo.ca/future-students/programs/<slug>
- *     → "Admission averages:" section of each program page
- *   University of Toronto Engineering: "Characteristics of the First Year Class 2025"
- *     → Mean OSS Avg column (official UofT Engineering published report)
- */
-
-/**
- * Published admission averages by OUAC code.
- *
- * Only includes averages explicitly stated on each university's official
- * admissions / future-students program page. Nothing is inferred or estimated.
- *
- * Sources:
- *   University of Waterloo: https://uwaterloo.ca/future-students/programs/<slug>
- *     → "Admission averages:" section of each program page
- *   University of Toronto Engineering: "Characteristics of the First Year Class 2025"
- *     → Mean OSS Avg column (official UofT Engineering published report)
- *   University of Toronto (non-Engineering): UofT 2025–26 Undergraduate Admissions Bulletin
- *     → "Approx. grade requirement" column
- *   McMaster University: https://future.mcmaster.ca/programs/<slug>
- *     → "Anticipated Admission Average" on each program page
- *   Western University: https://welcome.uwo.ca/next-steps/requirements/canadian-high-school/
- *     → "Admission Average Range" table
- *   Queen's University: https://www.queensu.ca/admission/applying/competitive-average
- *     → "Competitive Average for Admission Consideration" table
- *   York University: https://futurestudents.yorku.ca/program/<slug>
- *     → "Academic average should be in the…" on program pages
- *   Toronto Metropolitan University: https://www.torontomu.ca/admissions/
- *     → "Grade range" on program pages
- */
+// Published admission averages by OUAC code.
+// Only includes ranges/averages that universities have explicitly stated on their official pages.
+//
+// Sources:
+//   Waterloo:  https://uwaterloo.ca/future-students/programs/<slug> — "Admission averages" section
+//   UofT Eng:  "Characteristics of the First Year Class 2025" — Mean OSS Avg column
+//   UofT other: UofT 2025–26 Undergraduate Admissions Bulletin — "Approx. grade requirement"
+//   McMaster:  https://future.mcmaster.ca/programs/<slug> — "Anticipated Admission Average"
+//   Western:   https://welcome.uwo.ca/next-steps/requirements/canadian-high-school/ — "Admission Average Range"
+//   Queen's:   https://www.queensu.ca/admission/applying/competitive-average
+//   York:      https://futurestudents.yorku.ca/program/<slug>
+//   TMU:       https://www.torontomu.ca/admissions/
 
 export const ADMISSION_AVERAGES: Record<string, string> = {
 
-  // ── University of Waterloo ────────────────────────────────────────────────
-  // Engineering — all use "Individual selection" holistic review
+  // University of Waterloo
+  // Engineering — all use holistic "Individual selection" review
   'WBM': 'Individual selection from the high 80s to low 90s',  // Biomedical Engineering
   'WC':  'Individual selection from the mid- to high 80s',     // Chemical Engineering
   'WD':  'Individual selection from the high 80s to low 90s',  // Systems Design Engineering
@@ -52,10 +27,10 @@ export const ADMISSION_AVERAGES: Record<string, string> = {
   'WWF': 'Individual selection from the high 80s to low 90s',  // Electrical Engineering
   'WWH': 'Individual selection from the high 80s to low 90s',  // Mechanical Engineering
   'WWJ': 'Individual selection from the high 80s to low 90s',  // Computer Engineering
-  // Architecture (Engineering faculty but separate school)
+  // Architecture (Engineering faculty, separate school)
   'WR':  'Individual selection from the mid-80s',              // Architecture
 
-  // Mathematics faculty — all use "Individual selection" holistic review
+  // Math faculty — also holistic
   'WBC': 'Individual selection from the low to mid-90s',       // CS/BBA Double Degree (Waterloo/Laurier)
   'WCF': 'Individual selection from the low to mid-90s',       // Computing and Financial Management
   'WCS': 'Individual selection from the low to mid-90s',       // Computer Science
@@ -64,7 +39,7 @@ export const ADMISSION_AVERAGES: Record<string, string> = {
   'WN':  'Individual selection from the mid-80s',              // Mathematics / CPA
   'WXY': 'Mid-80s',                                           // Accounting and Financial Management (AFM)
 
-  // School of Accounting and Finance
+  // School of Accounting and Finance (SAF)
   'WSF': 'Mid-80s',                                           // Sustainability and Financial Management
 
   // Environment faculty
@@ -90,9 +65,9 @@ export const ADMISSION_AVERAGES: Record<string, string> = {
   'WAB': 'Low 80s',                                           // Honours Arts and Business
   'WGB': 'Low 80s',                                           // Global Business and Digital Arts
 
-  // ── University of Toronto Engineering ────────────────────────────────────
-  // Source: "Characteristics of the First Year Class 2025" (official UofT report)
-  // "Mean OSS Avg" = mean Ontario Secondary School Average of the entering class
+  // University of Toronto — Engineering
+  // from the official "Characteristics of the First Year Class 2025" report
+  // "Mean OSS Avg" = mean Ontario Secondary School average of the entering class
   'TB':  'Class of 2025 entering class mean: 94.6%',          // Chemical Engineering
   'TV':  'Class of 2025 entering class mean: 94.0%',          // Civil Engineering
   'TCS': 'Class of 2025 entering class mean: 96.3%',          // Computer Engineering
@@ -103,13 +78,12 @@ export const ADMISSION_AVERAGES: Record<string, string> = {
   'TM':  'Class of 2025 entering class mean: 96.0%',          // Mechanical Engineering
   'TEO': 'Class of 2025 entering class mean: 96.4% / Approx. grade requirement: low to mid-90s',  // TrackOne
 
-  // ── University of Toronto (other faculties) ───────────────────────────────
-  // Source: UofT 2025–26 Undergraduate Admissions Bulletin
+  // University of Toronto — other faculties
+  // from the UofT 2025–26 Undergraduate Admissions Bulletin
   'TAD': 'Approx. grade requirement: low 90s',                // Computer Science (Arts & Science)
   'TAC': 'Approx. grade requirement: mid to high 80s',        // Rotman Commerce
 
-  // ── McMaster University ───────────────────────────────────────────────────
-  // Source: https://future.mcmaster.ca/programs/
+  // McMaster University — https://future.mcmaster.ca/programs/
   'MLS': 'Anticipated admission average: low 90s',            // Life Sciences Gateway
   'MEH': 'Minimum 90% for consideration',                     // Integrated Biomedical Engineering & Health Sciences (iBioMed)
   'MEI': 'Minimum 90% for consideration',                     // Integrated Biomedical Engineering & Health Sciences Co-op
@@ -119,15 +93,13 @@ export const ADMISSION_AVERAGES: Record<string, string> = {
   'ME':  'Minimum 87% for consideration',                     // Engineering I
   'MEC': 'Minimum 87% for consideration',                     // Engineering Co-op I
 
-  // ── Western University ────────────────────────────────────────────────────
-  // Source: https://welcome.uwo.ca/next-steps/requirements/canadian-high-school/
+  // Western University — https://welcome.uwo.ca/next-steps/requirements/canadian-high-school/
   'ECS': 'Admission average range: low to mid-80s',           // Computer Science
   'EE':  'Admission average range: high 80s to low 90s',      // Engineering
   'EW':  'Admission average range: high 80s to low 90s',      // Health Sciences
   'ENW': 'Admission average range: high 80s to low 90s',      // Nursing
 
-  // ── Queen's University ────────────────────────────────────────────────────
-  // Source: https://www.queensu.ca/admission/applying/competitive-average
+  // Queen's University — https://www.queensu.ca/admission/applying/competitive-average
   'QC':  'Competitive average: 90+',                          // Smith Commerce
   'QD':  'Competitive average: mid-80s',                      // Computing
   'QA':  'Competitive average: low 80s',                      // Arts
@@ -136,20 +108,16 @@ export const ADMISSION_AVERAGES: Record<string, string> = {
   'QEC': 'Competitive average: high 80s',                     // Smith Engineering Direct Entry — Electrical & Computer
   'QEM': 'Competitive average: high 80s',                     // Smith Engineering Direct Entry — Mechatronics & Robotics
 
-  // ── York University ───────────────────────────────────────────────────────
-  // Source: https://futurestudents.yorku.ca/program/
+  // York University — https://futurestudents.yorku.ca/program/
   'YBA': 'Academic average should be in the low 90s',         // Business Administration (BBA) / Schulich iBBA
 
-  // ── Toronto Metropolitan University ──────────────────────────────────────
-  // Source: https://www.torontomu.ca/admissions/
+  // Toronto Metropolitan University — https://www.torontomu.ca/admissions/
   'SEU': 'Grade range: low 80s',                              // Undeclared Engineering
 
 };
 
-/**
- * Look up the published admission average for a given OUAC code.
- * Returns null if the university has not publicly stated an average for this program.
- */
+// looks up the officially published admission average for a given OUAC code
+// returns null if nothing is on file for that program
 export function getPublishedAverage(ouacCode: string | null | undefined): string | null {
   if (!ouacCode) return null;
   return ADMISSION_AVERAGES[ouacCode.toUpperCase()] ?? null;

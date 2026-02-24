@@ -1,23 +1,20 @@
-/**
- * OUAC codes for programs known to require a supplemental application
- * (AIF, portfolio, personal statement, etc.) in addition to the OUAC form.
- *
- * Sources:
- *  - Waterloo: https://uwaterloo.ca/future-students/admissions/admission-information-form
- *    → All Engineering (excl. Architecture), All Math faculty, CFM, Geography & Aviation, Science & Aviation
- *  - McMaster: Health Sciences (MNS), iBioMed (MEH/MEI), Integrated Science (MIS), Arts & Science (MX)
- *  - UofT Engineering: all programs in the Faculty of Applied Science & Engineering
- *  - UofT Rotman Commerce (TAC): supplemental assessment required
- *  - Queen's: Commerce (QC), Health Sciences (QH)
- *  - Western: Ivey AEO (WIVEY), Medical Sciences (ESM)
- *  - Schulich / York: BBA (YBA)
- *  - Laurier double-degree programs (Waterloo component requires AIF): UWB, UWW, UXA
- *  - TMU Engineering (AIF): SEA, SEJ, SEN, SEU, SCE, SCF, SCG, SCH, SCI, SCO, SSE, SSO
- *  - Concurrent Education programs (York, Brock, Lakehead, etc.): additional assessment
- */
+// OUAC codes for programs that require a supplemental application
+// (AIF, portfolio, personal statement, etc.) on top of the OUAC form.
+//
+// Sources:
+//   Waterloo: https://uwaterloo.ca/future-students/admissions/admission-information-form
+//     - all Engineering (except Architecture), all Math faculty, CFM, Geography & Aviation, Science & Aviation
+//   McMaster: Health Sciences (MNS), iBioMed (MEH/MEI), Integrated Science (MIS), Arts & Science (MX)
+//   UofT Engineering: all Faculty of Applied Science & Engineering programs
+//   UofT Rotman Commerce (TAC): supplemental assessment
+//   Queen's: Commerce (QC), Health Sciences (QH)
+//   Western: Ivey AEO (WIVEY), Medical Sciences (ESM)
+//   Schulich/York: BBA (YBA)
+//   Laurier double-degree programs (Waterloo AIF required): UWB, UWW, UXA
+//   Concurrent Education (York, Brock, Lakehead, etc.): additional assessment
 export const SUPPLEMENTAL_CODES = new Set<string>([
-  // ─── University of Waterloo ─────────────────────────────────────────────────
-  // Engineering (AIF required — all programs except Architecture WR)
+  // University of Waterloo
+  // Engineering (AIF required for all except Architecture WR)
   'WBM', // Biomedical Engineering
   'WC',  // Chemical Engineering
   'WD',  // Systems Design Engineering
@@ -30,7 +27,7 @@ export const SUPPLEMENTAL_CODES = new Set<string>([
   'WWF', // Electrical Engineering
   'WWH', // Mechanical Engineering
   'WWJ', // Computer Engineering
-  // Mathematics (AIF required — all Math faculty programs)
+  // Math faculty (AIF required for all)
   'WBC', // CS/BBA Double Degree (Waterloo/Laurier)
   'WCF', // Computing and Financial Management
   'WCS', // Computer Science
@@ -43,14 +40,14 @@ export const SUPPLEMENTAL_CODES = new Set<string>([
   'WEV', // Geography and Aviation
   'WSV', // Science and Aviation
 
-  // ─── McMaster University ────────────────────────────────────────────────────
+  // McMaster University
   'MNS', // Health Sciences — portfolio required
   'MEH', // iBioMed (Integrated Biomedical Engineering & Health Sciences) — supplemental
   'MEI', // iBioMed (co-op) — supplemental
   'MIS', // Integrated Science — supplemental
   'MX',  // Arts & Science — supplemental
 
-  // ─── University of Toronto ──────────────────────────────────────────────────
+  // University of Toronto
   // Engineering (AIF required for all Faculty of Applied Science & Engineering)
   'TB',  // Chemical Engineering
   'TCS', // Computer Engineering
@@ -64,52 +61,35 @@ export const SUPPLEMENTAL_CODES = new Set<string>([
   // Commerce
   'TAC', // Rotman Commerce (St. George) — supplemental assessment required
 
-  // ─── Queen's University ─────────────────────────────────────────────────────
+  // Queen's University
   'QC',  // Commerce — supplemental
   'QH',  // Health Sciences — supplemental required
 
-  // ─── Western University ─────────────────────────────────────────────────────
+  // Western University
   'WIVEY', // Ivey Advanced Entry Opportunity — supplemental required
   'ESM',   // Medical Sciences — SWOMEN supplemental consideration
 
-  // ─── York University / Schulich ─────────────────────────────────────────────
+  // York University / Schulich
   'YBA', // Schulich School of Business BBA — supplemental required
   'YFK', // Concurrent Education (Liberal Arts/Prof Studies) — additional assessment
   'YQ',  // Concurrent Education (Arts, Media, Performance & Design) — additional assessment
 
-  // ─── Wilfrid Laurier University ─────────────────────────────────────────────
-  // Double-degree programs with Waterloo require AIF for the Waterloo component
+  // Wilfrid Laurier University
+  // double-degree programs with Waterloo require an AIF for the Waterloo component
   'UWB', // BBA/CS (Laurier+Waterloo)
   'UWW', // BBA/Mathematics (Laurier+Waterloo)
   'UXA', // BBA/CS (Laurier only stream)
 
-  // ─── Toronto Metropolitan University (TMU) ──────────────────────────────────
-  // Engineering programs require an AIF
-  'SEA', // Aerospace Engineering
-  'SEJ', // Civil Engineering
-  'SEN', // Computer Engineering
-  'SEU', // Undeclared Engineering
-  'SCE', // Chemical Engineering
-  'SCF', // Electrical Engineering
-  'SCG', // Industrial Engineering
-  'SCH', // Mechanical Engineering
-  'SCI', // Biomedical Engineering
-  'SCO', // Engineering Management
-  'SSE', // Software Engineering
-  'SSO', // Computer Science (some supplemental tracks)
-
-  // ─── Brock University ───────────────────────────────────────────────────────
+  // Brock University
   'BAI', // Concurrent BA/BEd — additional assessment
   'BII', // Concurrent BSc/BEd — additional assessment
   'BNS', // Nursing — supplemental
 
-  // ─── Lakehead University ────────────────────────────────────────────────────
+  // Lakehead University
   'AL',  // Concurrent Education Intermediate/Senior — additional assessment
 ]);
 
-/**
- * Returns true if the given OUAC code is in the supplemental-required set.
- */
+// checks if a given OUAC code requires a supplemental application
 export function requiresSupplemental(ouacCode: string | null | undefined): boolean {
   if (!ouacCode) return false;
   return SUPPLEMENTAL_CODES.has(ouacCode.toUpperCase());

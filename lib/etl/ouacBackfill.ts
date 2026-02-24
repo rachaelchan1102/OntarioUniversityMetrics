@@ -8,7 +8,7 @@ export interface ProgramRow {
 }
 
 export function buildOuacMap(rows: ProgramRow[]): Record<string, string> {
-	// (university_norm + program_name_norm) -> ouac_code
+	// university_norm + program_name_norm -> ouac_code
 	const map: Record<string, string> = {};
 	for (const row of rows) {
 		if (row.ouac_code) {
@@ -45,9 +45,10 @@ export function backfillOuac(
 			}
 			return { ...c, score };
 		});
-		// Only backfill if similarity >= 0.92 and unique best match or large margin
-		if (best && bestScore >= 0.92 && bestScore - secondBestScore > 0.05) {
-			return { ...row, ouac_code: best.ouac_code };
+		// only fill in the code if we're very confident (similarity >= 0.92 and a clear gap over second place)
+		const bestMatch = best as ProgramRow | null;
+		if (bestMatch && bestScore >= 0.92 && bestScore - secondBestScore > 0.05) {
+			return { ...row, ouac_code: bestMatch.ouac_code };
 		} else {
 			unmatched.push({
 				row,

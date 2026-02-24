@@ -1,17 +1,15 @@
 // Program query logic
 import { getDb } from '../db/client';
 
-/**
- * Slug formats:
- *   OUAC:  "{CODE}--{university_norm}"  e.g. "WCS--university of waterloo"
- *          Detected by: first segment before "--" is all uppercase letters/digits
- *   Legacy: "{university_norm}--{program_name_norm}"  (lowercase, may contain spaces)
- */
+// two slug formats:
+//   OUAC:   "{CODE}--{university_norm}"  e.g. "WCS--university of waterloo"
+//           detected because the first segment is all uppercase letters/digits
+//   Legacy: "{university_norm}--{program_name_norm}"  (lowercase, may contain spaces)
 function parseSlug(slug: string): { type: 'ouac'; code: string; university_norm: string } | { type: 'legacy'; university_norm: string; program_name_norm: string } {
 	const sep = slug.indexOf('--');
 	const first = sep >= 0 ? slug.slice(0, sep) : slug;
 	const rest  = sep >= 0 ? slug.slice(sep + 2) : '';
-	// OUAC codes are 1–6 uppercase letters/digits, university_norm is always lowercase
+	// OUAC codes are 1-6 uppercase letters/digits, university_norm is always lowercase
 	if (/^[A-Z][A-Z0-9]{0,5}$/.test(first)) {
 		return { type: 'ouac', code: first, university_norm: rest };
 	}

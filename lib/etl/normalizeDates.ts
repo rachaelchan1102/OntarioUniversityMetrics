@@ -12,7 +12,7 @@ const MONTH_FULL: Record<string, string> = {
 	september: 'sep', october: 'oct', november: 'nov', december: 'dec',
 };
 
-/** Strip ordinal suffixes: "16th" → "16", "2nd" → "2" */
+// strips ordinal suffixes 
 function stripOrdinal(s: string): string {
 	return s.replace(/(\d+)(?:st|nd|rd|th)\b/gi, '$1');
 }
@@ -20,7 +20,7 @@ function stripOrdinal(s: string): string {
 function parseDate(raw: string): Date | null {
 	if (!raw) return null;
 
-	// Pre-process: strip leading weekday like "Tue, " or "Tue " and ordinals
+	// Pre-process: strip leading weekday
 	let s = raw.trim();
 	s = s.replace(/^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*[,.\s]+/i, '');
 	s = stripOrdinal(s).trim();
@@ -62,7 +62,7 @@ function parseDate(raw: string): Date | null {
 }
 
 function inferYearFromMonth(month: string, academicYear: string): number | null {
-	// academicYear: "2022-2023"
+	// academicYear format: "2022-2023"
 	const [start, end] = academicYear.split('-').map(Number);
 	if (!start || !end) return null;
 	const m = month.toLowerCase().slice(0, 3);
@@ -99,9 +99,8 @@ export function normalizeDateFields(raw: string, academicYear: string) {
 
 	const date = parseDate(raw);
 	if (date) {
-		// Only trust the full ISO date if the year looks sane (>= 2000).
-		// date-fns defaults missing years to the reference date (current year),
-		// which can produce wrong results for day-only strings.
+		// only trust the parsed year if it looks reasonable (>= 2000)
+		// date-fns defaults missing years to today's year, which breaks day-only strings
 		const year = date.getFullYear();
 		if (year >= 2000) {
 			admission_date_iso = format(date, 'yyyy-MM-dd');
@@ -110,7 +109,7 @@ export function normalizeDateFields(raw: string, academicYear: string) {
 			admission_year = year;
 			return { admission_date_iso, admission_month_iso, admission_month_label, admission_year, round_label, round_order };
 		}
-		// Year looks wrong — fall through to month-only extraction
+		// year looks wrong, fall through to month-only extraction
 	}
 
 	// Round fallback ("Round 1", "round 2")

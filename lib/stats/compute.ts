@@ -18,7 +18,6 @@ export function computeKPIs(rows: any[]) {
 }
 
 export function computeInsights(rows: any[]) {
-	// Example: most/least competitive month, % supplemental, trend
 	if (!rows.length) return [];
 	const byMonth: Record<string, number[]> = {};
 	for (const r of rows) {

@@ -10,6 +10,7 @@
     "db:update": "npx tsx scripts/import-csv.ts --update"
   },
   "dependencies": {
+    "@types/fast-levenshtein": "^0.0.4",
     "@types/node": "*",
     "@types/react": "*",
     "better-sqlite3": "^8.0.0",

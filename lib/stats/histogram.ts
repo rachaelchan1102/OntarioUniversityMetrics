@@ -4,7 +4,8 @@ export function computeHistogram(grades: number[], binStart = 60, binEnd = 100, 
 	for (let b = binStart; b < binEnd; b += binSize) {
 		bins.push({
 			bin: `${b}-${b + binSize - 1}`,
-			count: 0
+			count: 0,
+			pct: 0
 		});
 	}
 	for (const g of grades) {
