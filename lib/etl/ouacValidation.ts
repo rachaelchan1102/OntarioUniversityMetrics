@@ -92,7 +92,13 @@ function getByUni(): Map<string, OuacProgram[]> {
 // Manual overrides for abbreviations/brand names that fuzzy matching can't resolve.
 // These have no token overlap with the official OUAC name so they'd never match automatically.
 // Key: `${programNorm}::${universityNorm}`, Value: OUAC code
+//
+// Additionally, if a record has a valid OUAC code (even if not matched by fuzzy logic),
+// map it to the corresponding program in ouacPrograms.json.
 const MANUAL_OVERRIDES: Record<string, string> = {
+    // User-confirmed manual mappings (Feb 2026)
+    'physical and mathematical sciences::university of waterloo': 'WPS',
+    'engineering direct entry electrical and computer::queens university': 'QEC',
   // ── McMaster ─────────────────────────────────────────────────────────────
   'ibiomed::mcmaster university': 'MEH',       // iBioMed → Integrated Biomedical Engineering & Health Sciences
   'life sci::mcmaster university': 'MLS',
@@ -173,7 +179,25 @@ const MANUAL_OVERRIDES: Record<string, string> = {
   'software eng::carleton university': 'CES',
 };
 
-// Public API
+
+// Helper: If a record has a valid OUAC code, return the canonical code for that university if possible
+export function autoMapValidOuacCode(rawCode: string | null | undefined, universityNorm: string): string | null {
+  if (!rawCode) return null;
+  const code = rawCode.trim().toUpperCase();
+  const hits = getByCode().get(code);
+  if (hits && hits.length > 0) {
+    // If only one university uses this code, return it
+    if (hits.length === 1) return hits[0].code;
+    // Otherwise, try to match university
+    const uniMatch = hits.find(h => h.universityNorm === universityNorm);
+    if (uniMatch) return uniMatch.code;
+    // Fallback: return the first
+    return hits[0].code;
+  }
+  return null;
+}
+
+// Patch: In matchToOuac, if nothing else matches but the rawCode is valid, use it
 
 // checks if a code exists in the OUAC database (case-insensitive)
 export function isValidOuacCode(code: string): boolean {
@@ -226,7 +250,6 @@ export function matchToOuac(
   }
 
   // tier 2: fuzzy match within the same university
-  // find the closest university in the index first
   let bestUniScore = 0;
   let bestUniKey = '';
   for (const key of getByUni().keys()) {
@@ -247,11 +270,9 @@ export function matchToOuac(
     if (scored.length > 0) {
       const best = scored[0];
       const second = scored[1]?.score ?? 0;
-      // need a good score and a clear gap over second place
       if (best.score >= minScore && best.score - second > 0.08) {
         return best.c;
       }
-      // very high score alone is good enough
       if (best.score >= 0.92) return best.c;
     }
   }
@@ -268,6 +289,15 @@ export function matchToOuac(
     const second = allScored[1]?.score ?? 0;
     if (best.score >= HIGH_CONFIDENCE && best.score - second > 0.08) {
       return best.c;
+    }
+  }
+
+  // FINAL PATCH: If the rawCode is a valid OUAC code, map to the canonical program for that code
+  const autoCode = autoMapValidOuacCode(rawCode, universityNorm);
+  if (autoCode) {
+    const hits = getByCode().get(autoCode);
+    if (hits && hits.length > 0) {
+      return hits.find(h => h.universityNorm === universityNorm) ?? hits[0];
     }
   }
 

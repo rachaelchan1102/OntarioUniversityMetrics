@@ -7,6 +7,12 @@
 			"command": "npm run dev",
 			"isBackground": true,
 			"problemMatcher": []
+		},
+		{
+			"label": "Convert HTML to CSV",
+			"type": "shell",
+			"command": "ts-node scripts/html-to-csv.ts",
+			"group": "build"
 		}
 	]
 }

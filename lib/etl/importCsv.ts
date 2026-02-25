@@ -40,6 +40,17 @@ export async function importAllCSVs({ rebuild = false } = {}) {
 			const university = mapping.university ? rec[mapping.university] || '' : '';
 			const program_name = mapping.program_name ? rec[mapping.program_name] || '' : '';
 			const admission_grade_raw = mapping.admission_grade ? rec[mapping.admission_grade] : undefined;
+			// --- Queen's Arts/Psychology override ---
+			function isQueensArtsPsych(university: string, program: string): boolean {
+				const u = university.toLowerCase().replace(/[^a-z0-9]/g, '');
+				const p = program.toLowerCase();
+				return (
+					(u.includes("queensuniversity") || u.includes("queen s university") || u.includes("queen'suniversity")) &&
+					(p.includes('arts') || p.includes('psychology')) &&
+					!p.includes('concurrent') &&
+					!p.includes('education')
+				);
+			}
 			if (!university || !program_name || admission_grade_raw === undefined) {
 				droppedRows++;
 				continue;
@@ -86,15 +97,21 @@ export async function importAllCSVs({ rebuild = false } = {}) {
 			}
 			// validate and canonicalize the OUAC code
 			// if we can't verify it, store null — garbage like "idk", "n/a" etc. shouldn't pollute grouping
-			const rawOuacCode = mapping.ouac_code ? rec[mapping.ouac_code] || null : null;
+			let rawOuacCode = mapping.ouac_code ? rec[mapping.ouac_code] || null : null;
 			let ouac_code: string | null = null;
 			let canonical_program_norm = program_name_norm;
 			let canonical_university_norm = university_norm;
-			const ouacMatch = matchToOuac(rawOuacCode, program_name_norm, university_norm);
-			if (ouacMatch) {
-				ouac_code = ouacMatch.code;
-				canonical_program_norm = ouacMatch.programNorm;
-				canonical_university_norm = ouacMatch.universityNorm;
+			// --- Queen's Arts/Psychology override ---
+			if (isQueensArtsPsych(university, program_name)) {
+				ouac_code = 'QA';
+				canonical_program_norm = 'arts';
+			} else {
+				const ouacMatch = matchToOuac(rawOuacCode, program_name_norm, university_norm);
+				if (ouacMatch) {
+					ouac_code = ouacMatch.code;
+					canonical_program_norm = ouacMatch.programNorm;
+					canonical_university_norm = ouacMatch.universityNorm;
+				}
 			}
 			// Row hash — keyed on canonical values for consistent cross-year deduplication
 			const row_hash = sha256(

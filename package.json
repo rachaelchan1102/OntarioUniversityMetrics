@@ -14,6 +14,7 @@
     "@types/node": "*",
     "@types/react": "*",
     "better-sqlite3": "^8.0.0",
+    "cheerio": "^1.2.0",
     "csv-parse": "^5.4.0",
     "date-fns": "^4.1.0",
     "fast-levenshtein": "^3.0.0",
@@ -25,17 +26,19 @@
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.5",
+    "@types/jsdom": "^28.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "autoprefixer": "^10.4.14",
     "eslint": "^8.0.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-react": "^7.33.2",
+    "jsdom": "^28.1.0",
     "postcss": "^8.4.21",
     "prettier": "^3.0.0",
     "tailwindcss": "^3.3.2",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.9.3"
   }
 }
