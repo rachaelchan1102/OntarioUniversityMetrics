@@ -114,9 +114,9 @@ export default function HorizontalCarousel({ slides, intervalMs = 4000 }: Horizo
           let transform = style.transform || '';
           if (isMobile) {
             if (className.includes('left')) {
-              transform = 'scale(0.75) translateX(-44vw) translateY(12px)';
+              transform = 'scale(0.75) translateX(-38vw) translateY(12px)';
             } else if (className.includes('right')) {
-              transform = 'scale(0.75) translateX(44vw) translateY(12px)';
+              transform = 'scale(0.75) translateX(38vw) translateY(12px)'; // Reduce right side offset
             } else if (className.includes('center')) {
               transform = 'scale(0.92) translateY(0px)';
             }
