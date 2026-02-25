@@ -26,7 +26,7 @@ function CustomTooltip({ active, payload, label }: any) {
   );
 }
 
-export default function TrendLineChart({ data }: { data: YearPoint[] }) {
+export default function TrendLineChart({ data, height = '100%' }: { data: YearPoint[], height?: number | string }) {
   const formatted = data.map(d => ({
     ...d,
     label: d.academic_year.replace(/(\d{4})-(\d{4})/, (_, a, b) => `${a}–${b.slice(2)}`),
@@ -37,7 +37,7 @@ export default function TrendLineChart({ data }: { data: YearPoint[] }) {
   const maxVal = Math.ceil(Math.max(...allAvgs) + 1);
 
   return (
-    <ResponsiveContainer width="100%" height={220}>
+    <ResponsiveContainer width="100%" height={height}>
       <AreaChart data={formatted} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
         <defs>
           <linearGradient id="gradeGradient" x1="0" y1="0" x2="0" y2="1">
@@ -48,14 +48,14 @@ export default function TrendLineChart({ data }: { data: YearPoint[] }) {
         <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.07} />
         <XAxis
           dataKey="label"
-          tick={{ fontSize: 11, fill: 'currentColor' }}
+          tick={{ fontSize: 13, fill: 'currentColor' }}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
           domain={[minVal, maxVal]}
           ticks={Array.from({ length: maxVal - minVal + 1 }, (_, i) => minVal + i)}
-          tick={{ fontSize: 11, fill: 'currentColor' }}
+          tick={{ fontSize: 13, fill: 'currentColor' }}
           axisLine={false}
           tickLine={false}
           tickFormatter={(v: number) => `${v}%`}
@@ -65,11 +65,12 @@ export default function TrendLineChart({ data }: { data: YearPoint[] }) {
         <Area
           type="monotone"
           dataKey="avg_grade"
-          stroke="#0d9488"
-          strokeWidth={2.5}
+          stroke="#14b8a6"
+          strokeWidth={3}
+          fillOpacity={1}
           fill="url(#gradeGradient)"
-          dot={{ r: 4, fill: '#0d9488', strokeWidth: 0 }}
-          activeDot={{ r: 6, fill: '#0d9488', strokeWidth: 0 }}
+          activeDot={{ r: 6 }}
+          dot={{ r: 4, fill: '#14b8a6', stroke: 'white', strokeWidth: 2 }}
         />
       </AreaChart>
     </ResponsiveContainer>

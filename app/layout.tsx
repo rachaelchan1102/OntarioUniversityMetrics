@@ -30,12 +30,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="bg-gray-50 dark:bg-[#212121] text-gray-900 dark:text-white min-h-screen">
         <ThemeProvider>
-          <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#0f1a2b]/80 backdrop-blur border-b border-slate-200 dark:border-slate-700/60">
-            <div className="max-w-6xl mx-auto px-5 sm:px-10 h-14 flex items-center gap-2.5 justify-between">
-              <div className="flex items-center gap-2.5">
-                <img src="/ontariouniversitymetriclogo.png" alt="Ontario University Metrics" width={44} height={44} className="shrink-0" style={{ display: 'inline-block' }} />
-                <span className="font-semibold text-slate-900 dark:text-white text-sm tracking-tight">Ontario University Metrics</span>
-              </div>
+          <header className="sticky top-0 z-40 bg-transparent">
+            <div className="max-w-6xl mx-auto px-5 sm:px-10 h-14 flex items-center justify-end">
               <ThemeToggle />
             </div>
           </header>
