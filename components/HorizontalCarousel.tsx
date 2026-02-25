@@ -105,6 +105,22 @@ export default function HorizontalCarousel({ slides, intervalMs = 4000 }: Horizo
       <div className="relative flex items-center justify-center w-full max-w-4xl" style={{height: maxHeight ? `${maxHeight}px` : 'auto'}}>
         {safeSlides.map((slide, i) => {
           const { style, className } = getCardProps(i);
+          // Responsive sizing: ensure all cards fit within viewport on mobile
+          const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+          // On mobile, scale down side cards and center card to fit all within 100vw
+          const cardWidth = isMobile ? '88vw' : '480px';
+          const maxWidth = isMobile ? '88vw' : '480px';
+          // Adjust translation for side cards on mobile
+          let transform = style.transform || '';
+          if (isMobile) {
+            if (className.includes('left')) {
+              transform = 'scale(0.75) translateX(-44vw) translateY(12px)';
+            } else if (className.includes('right')) {
+              transform = 'scale(0.75) translateX(44vw) translateY(12px)';
+            } else if (className.includes('center')) {
+              transform = 'scale(0.92) translateY(0px)';
+            }
+          }
           return (
             <div
               key={i}
@@ -113,11 +129,11 @@ export default function HorizontalCarousel({ slides, intervalMs = 4000 }: Horizo
               style={{
                 left: '50%',
                 top: '50%',
-                width: window.innerWidth < 640 ? '98vw' : '480px', // Responsive: 98vw for mobile, 480px for desktop
-                maxWidth: window.innerWidth < 640 ? '98vw' : '480px',
+                width: cardWidth,
+                maxWidth: maxWidth,
                 minHeight: '0',
                 height: maxHeight ? `${maxHeight}px` : 'auto',
-                transform: `${style.transform} translate(-50%, -50%)`,
+                transform: `${transform} translate(-50%, -50%)`,
                 opacity: style.opacity,
                 zIndex: style.zIndex,
                 boxShadow: style.boxShadow,
