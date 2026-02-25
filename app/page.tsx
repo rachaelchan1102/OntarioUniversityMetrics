@@ -250,6 +250,30 @@ export default function HomePage() {
                   )}
                 </div>
 
+                {/* Animated SVG wave divider for scroll transition */}
+                <div className="w-full max-w-4xl mx-auto overflow-hidden mb-[-2.5rem] pointer-events-none">
+                  <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-[60px] animate-wave">
+                    <path d="M0,0 C300,100 900,20 1200,100 L1200,120 L0,120 Z" fill="url(#waveGradient)" />
+                    <defs>
+                      <linearGradient id="waveGradient" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#06b6d4" />
+                        <stop offset="100%" stopColor="#3b82f6" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </div>
+
+                {/* Add wave animation styles */}
+                <style jsx>{`
+                  .animate-wave {
+                    animation: waveMove 2.5s ease-in-out infinite;
+                  }
+                  @keyframes waveMove {
+                    0% { transform: translateY(0px); }
+                    50% { transform: translateY(12px); }
+                    100% { transform: translateY(0px); }
+                  }
+                `}</style>
         
         <div className="max-w-4xl mx-auto bg-white dark:bg-[#1e2a3a] border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm p-6">
           <h2 className="text-2xl sm:text-4xl font-extrabold text-left mb-2">

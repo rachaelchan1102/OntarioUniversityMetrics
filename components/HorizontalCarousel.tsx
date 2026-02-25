@@ -113,8 +113,8 @@ export default function HorizontalCarousel({ slides, intervalMs = 4000 }: Horizo
               style={{
                 left: '50%',
                 top: '50%',
-                width: '480px', // Wider cards
-                maxWidth: '98vw',
+                width: window.innerWidth < 640 ? '98vw' : '480px', // Responsive: 98vw for mobile, 480px for desktop
+                maxWidth: window.innerWidth < 640 ? '98vw' : '480px',
                 minHeight: '0',
                 height: maxHeight ? `${maxHeight}px` : 'auto',
                 transform: `${style.transform} translate(-50%, -50%)`,
