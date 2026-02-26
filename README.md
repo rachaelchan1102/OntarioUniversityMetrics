@@ -1,6 +1,6 @@
 # Ontario University Metrics
 
-A data-driven dashboard for exploring Ontario university admission averages, because anecdotal Reddit comments aren't a reliable way to understand how competitive a program actually is. Instead of scrolling through self-reported spreadsheets or guessing from one-off stories, this site aggregates multiple years of publicly shared admission data into a searchable, visual tool that is (probably) more accurate.
+A data-driven dashboard for exploring Ontario university admission averages, because anecdotal Reddit comments aren’t a reliable way to understand how competitive a program really is. Instead of scrolling through messy, multi-year spreadsheets or relying on one-off stories, the platform aggregates publicly shared admissions data into a structured, searchable, and visual tool.
 
 **Live site:** [ontariouniversitymetrics.com](https://www.ontariouniversitymetrics.com/)
 
