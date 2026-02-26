@@ -31,7 +31,7 @@ https://github.com/user-attachments/assets/cb1273b5-c0bc-4a9c-8ca3-1f60f9b127a4
 
 ## Data
 
-Data is sourced from publicly shared Ontario university admissions spreadsheets. It is **self-reported** and represents a subset of admitted students. Results should be interpreted accordingly.
+Data is sourced from publicly shared Ontario university admissions spreadsheets. It is **self-reported** and represents a subset of admitted students. Results should be interpreted accordingly. Data is often skewed upwards.
 
 ---
 
