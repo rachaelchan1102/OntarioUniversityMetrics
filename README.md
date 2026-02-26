@@ -4,7 +4,8 @@ A data-driven dashboard for exploring Ontario university admission averages, bec
 
 **Live site:** [ontariouniversitymetrics.com](https://www.ontariouniversitymetrics.com/)
 
-**Stats:**<img width="719" height="415" alt="Screenshot 2026-02-26 at 1 20 55 AM" src="https://github.com/user-attachments/assets/8deecf1b-0c43-4324-93d5-9cfcc93746b9" />
+**Stats:
+**<img width="719" height="415" alt="Screenshot 2026-02-26 at 1 20 55 AM" src="https://github.com/user-attachments/assets/8deecf1b-0c43-4324-93d5-9cfcc93746b9" />
 
 
 ---
