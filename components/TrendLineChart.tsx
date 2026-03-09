@@ -20,8 +20,8 @@ function CustomTooltip({ active, payload, label }: any) {
   return (
     <div className="bg-white dark:bg-[#1e2a3a] border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg px-3 py-2 text-xs">
       <p className="font-semibold text-slate-700 dark:text-slate-100 mb-1">{label}</p>
-      <p className="text-teal-600 dark:text-teal-400 font-bold">{payload[0].value.toFixed(1)}% avg grade</p>
-      <p className="text-slate-400 dark:text-slate-300">{payload[0].payload.n.toLocaleString()} records</p>
+      <p className="text-teal-600 dark:text-teal-400 font-bold">{Number(payload[0].value).toFixed(1)}% avg grade</p>
+      <p className="text-slate-400 dark:text-slate-300">{Number(payload[0].payload.n).toLocaleString()} records</p>
     </div>
   );
 }
@@ -29,6 +29,8 @@ function CustomTooltip({ active, payload, label }: any) {
 export default function TrendLineChart({ data, height = '100%' }: { data: YearPoint[], height?: number | string }) {
   const formatted = data.map(d => ({
     ...d,
+    avg_grade: Number(d.avg_grade),
+    n: Number(d.n),
     label: d.academic_year.replace(/(\d{4})-(\d{4})/, (_, a, b) => `${a}–${b.slice(2)}`),
   }));
 

@@ -105,8 +105,8 @@ export default function HomePage() {
           const endYear = data.max_year?.split('-')[1];
           if (startYear && endYear) setYearRange(`${startYear}-${endYear}`);
           if (data.yearly_averages.length > 1) {
-            const prev = data.yearly_averages[data.yearly_averages.length - 2].avg_grade;
-            const curr = data.yearly_averages[data.yearly_averages.length - 1].avg_grade;
+            const prev = Number(data.yearly_averages[data.yearly_averages.length - 2].avg_grade);
+            const curr = Number(data.yearly_averages[data.yearly_averages.length - 1].avg_grade);
             setTrend(Number((curr - prev).toFixed(1)));
           }
         } else {
@@ -144,7 +144,7 @@ export default function HomePage() {
                     <p className="text-base text-slate-400 dark:text-slate-300 mt-1">Across all programs & universities</p>
                     {stats && latestAvg && (
                       <span className="inline-flex text-base font-semibold text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 px-3 py-1 rounded-full border border-teal-200 dark:border-teal-800 whitespace-nowrap mt-2 max-w-fit">
-                        Latest: {latestAvg.avg_grade.toFixed(1)}%
+                        Latest: {Number(latestAvg.avg_grade).toFixed(1)}%
                       </span>
                     )}
                   </div>
@@ -158,14 +158,14 @@ export default function HomePage() {
                   <ul className="space-y-6">
                     {(() => {
                       const top5 = stats.university_averages.slice(0, 5);
-                      const max = Math.max(...top5.map((u: UniversityPoint) => u.avg_grade));
+                      const max = Math.max(...top5.map((u: UniversityPoint) => Number(u.avg_grade)));
                       return top5.map((u: UniversityPoint, i: number) => (
                         <li key={u.university}>
                           <div className="flex items-center justify-between text-sm sm:text-base">
                             <span className="text-slate-600 dark:text-slate-300 font-semibold truncate max-w-[70%]">
                               <span className="text-slate-400 dark:text-slate-300 mr-2">#{i + 1}</span>{titleCase(u.university)}
                             </span>
-                            <span className="font-bold text-slate-700 dark:text-slate-100 shrink-0 ml-4">{u.avg_grade.toFixed(1)}%</span>
+                            <span className="font-bold text-slate-700 dark:text-slate-100 shrink-0 ml-4">{Number(u.avg_grade).toFixed(1)}%</span>
                           </div>
                           <div className="mt-1 px-2">
                             <div className="relative h-2 w-full rounded-full bg-slate-100 overflow-hidden">
@@ -192,14 +192,14 @@ export default function HomePage() {
                   <ul className="space-y-6">
                     {(() => {
                       const bottom5 = stats.university_averages.slice(-5).reverse();
-                      const max = Math.max(...bottom5.map((u: UniversityPoint) => u.avg_grade));
+                      const max = Math.max(...bottom5.map((u: UniversityPoint) => Number(u.avg_grade)));
                       return bottom5.map((u: UniversityPoint, i: number) => (
                         <li key={u.university}>
                           <div className="flex items-center justify-between text-sm sm:text-base">
                             <span className="text-slate-600 dark:text-slate-300 font-semibold truncate max-w-[70%]">
                               <span className="text-slate-400 dark:text-slate-300 mr-2">#{i + 1}</span>{titleCase(u.university)}
                             </span>
-                            <span className="font-bold text-slate-700 dark:text-slate-100 shrink-0 ml-4">{u.avg_grade.toFixed(1)}%</span>
+                            <span className="font-bold text-slate-700 dark:text-slate-100 shrink-0 ml-4">{Number(u.avg_grade).toFixed(1)}%</span>
                           </div>
                           <div className="mt-1 px-2">
                             <div className="relative h-2 w-full rounded-full bg-slate-100 overflow-hidden">

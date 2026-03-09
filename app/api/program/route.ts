@@ -1,5 +1,5 @@
 // Program API route
-import { getProgramRows } from '../../../lib/queries/program';
+import { getProgramRows } from '../../../lib/queries/program-postgres';
 import { getCanonicalNames } from '../../../lib/etl/ouacValidation';
 import { requiresSupplemental } from '../../../lib/etl/supplementalCodes';
 import { getPublishedAverage } from '../../../lib/etl/admissionAverages';
@@ -22,7 +22,7 @@ export async function GET(req: Request) {
     return new Response(JSON.stringify({ program: null }), { status: 400 });
   }
   // Always fetch all years for this program for stats, but filter on client for display
-  const rows = getProgramRows(slug, 'ALL') as any[];
+  const rows = await getProgramRows(slug, 'ALL') as any[];
   if (!rows.length) {
     return new Response(JSON.stringify({ program: null }), { status: 404 });
   }
