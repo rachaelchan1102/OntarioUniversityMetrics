@@ -14,6 +14,7 @@
     "@types/fast-levenshtein": "^0.0.4",
     "@types/node": "*",
     "@types/react": "*",
+    "autoprefixer": "^10.4.14",
     "cheerio": "^1.2.0",
     "csv-parse": "^5.4.0",
     "date-fns": "^4.1.0",
@@ -21,25 +22,24 @@
     "fast-levenshtein": "^3.0.0",
     "next": "^15.5.12",
     "papaparse": "^5.4.1",
+    "postcss": "^8.4.21",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "recharts": "^2.7.2"
+    "recharts": "^2.7.2",
+    "tailwindcss": "^3.3.2",
+    "typescript": "^5.9.3"
   },
   "devDependencies": {
     "@types/jsdom": "^28.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
-    "autoprefixer": "^10.4.14",
     "eslint": "^9.39.4",
     "eslint-config-next": "^15.5.12",
     "eslint-config-prettier": "^10.0.0",
     "eslint-plugin-react": "^7.37.0",
     "jsdom": "^28.1.0",
-    "postcss": "^8.4.21",
     "prettier": "^3.0.0",
-    "tailwindcss": "^3.3.2",
     "ts-node": "^10.9.2",
-    "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "tsx": "^4.21.0"
   }
 }
