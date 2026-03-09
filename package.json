@@ -14,7 +14,6 @@
     "@types/fast-levenshtein": "^0.0.4",
     "@types/node": "*",
     "@types/react": "*",
-    "better-sqlite3": "^8.0.0",
     "cheerio": "^1.2.0",
     "csv-parse": "^5.4.0",
     "date-fns": "^4.1.0",
@@ -27,6 +26,7 @@
     "recharts": "^2.7.2"
   },
   "devDependencies": {
+    "better-sqlite3": "^8.0.0",
     "@types/better-sqlite3": "^7.6.5",
     "@types/jsdom": "^28.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",

@@ -1,18 +1,23 @@
 // Neon Postgres DB client setup
 import { Pool } from '@neondatabase/serverless';
 
-const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+// Lazy-initialize pool to avoid build-time errors when env vars aren't available
+let pool: Pool | null = null;
 
-if (!connectionString) {
-	throw new Error('POSTGRES_URL or DATABASE_URL environment variable is required');
+function getPool(): Pool {
+	if (!pool) {
+		const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+		if (!connectionString) {
+			throw new Error('POSTGRES_URL or DATABASE_URL environment variable is required');
+		}
+		pool = new Pool({ connectionString });
+	}
+	return pool;
 }
-
-// Create a Pool for connection pooling (recommended for serverless)
-const pool = new Pool({ connectionString });
 
 // Helper for queries that return rows
 export async function query<T = any>(queryString: string, params: any[] = []): Promise<T[]> {
-	const result = await pool.query(queryString, params);
+	const result = await getPool().query(queryString, params);
 	return result.rows as T[];
 }
 
@@ -22,5 +27,5 @@ export async function queryOne<T = any>(queryString: string, params: any[] = [])
 	return rows[0] || null;
 }
 
-// Export the pool for direct access if needed
-export { pool };
+// Export the getPool function for direct access if needed
+export { getPool as pool };
