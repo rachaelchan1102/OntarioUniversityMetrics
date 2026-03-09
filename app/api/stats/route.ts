@@ -56,8 +56,15 @@ export async function GET() {
     ORDER BY avg_grade DESC
   `, []);
 
+  // Get the most recent import date
+  const lastUpdatedResult = await queryOne<{ last_updated: string }>(`
+    SELECT MAX(imported_at) AS last_updated
+    FROM admissions
+  `, []);
+  const last_updated = lastUpdatedResult?.last_updated || null;
+
   return new Response(
-    JSON.stringify({ total_records, total_programs, total_universities, min_year, max_year, yearly_averages, overall_avg, university_averages }),
+    JSON.stringify({ total_records, total_programs, total_universities, min_year, max_year, yearly_averages, overall_avg, university_averages, last_updated }),
     { status: 200 }
   );
 }

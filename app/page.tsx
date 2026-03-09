@@ -28,6 +28,7 @@ interface Stats {
   max_year: string;
   yearly_averages: YearPoint[];
   university_averages: UniversityPoint[];
+  last_updated: string | null;
 }
 
 const KPICOLORS = {
@@ -265,6 +266,19 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto">
           <NotesDropdown />
         </div>
+
+        {/* Last Updated */}
+        {stats?.last_updated && (
+          <div className="max-w-4xl mx-auto">
+            <p className="text-sm text-slate-400 dark:text-slate-500">
+              Last updated: {new Date(stats.last_updated).toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </p>
+          </div>
+        )}
       </main>
     </div>
   );
