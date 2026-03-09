@@ -1,10 +1,19 @@
 # Ontario University Metrics
 
-A data-driven dashboard for exploring Ontario university admission averages, built because anecdotal Reddit comments aren't a reliable way to understand how competitive a program actually is.
-
-Instead of scrolling through self-reported spreadsheets or guessing from one-off stories, this site aggregates multiple years of publicly shared admission data into a searchable, visual tool.
+A data-driven dashboard for exploring Ontario university admission averages, because anecdotal Reddit comments aren’t a reliable way to understand how competitive a program really is. Instead of scrolling through messy, multi-year spreadsheets or relying on one-off stories, the platform aggregates publicly shared admissions data into a structured, searchable, and visual tool.
 
 **Live site:** [ontariouniversitymetrics.com](https://www.ontariouniversitymetrics.com/)
+
+**Video Demo:** 
+
+https://github.com/user-attachments/assets/cb1273b5-c0bc-4a9c-8ca3-1f60f9b127a4
+
+
+
+**Stats:**   
+
+<img width="719" height="415" alt="Screenshot 2026-02-26 at 1 20 55 AM" src="https://github.com/user-attachments/assets/8deecf1b-0c43-4324-93d5-9cfcc93746b9" />
+
 
 ---
 
@@ -16,12 +25,13 @@ Instead of scrolling through self-reported spreadsheets or guessing from one-off
 - Compare competitiveness across admission rounds
 - Filter by year
 - Compare self-reported averages against university-published figures
+- Track grade inflation
 
 ---
 
 ## Data
 
-Data is sourced from publicly shared Ontario university admissions spreadsheets. It is **self-reported** and represents a subset of admitted students. Results should be interpreted accordingly.
+Data is sourced from publicly shared Ontario university admissions spreadsheets. It is **self-reported** and represents a subset of admitted students. Results should be interpreted accordingly. Data is often skewed upwards.
 
 ---
 
