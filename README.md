@@ -41,6 +41,7 @@ Data is sourced from publicly shared Ontario university admissions spreadsheets.
 
 - [Node.js](https://nodejs.org/) (v18+)
 - npm
+- PostgreSQL database (or [Neon](https://neon.tech/) serverless Postgres)
 
 ### Installation
 
@@ -48,17 +49,20 @@ Data is sourced from publicly shared Ontario university admissions spreadsheets.
 npm install
 ```
 
-> **Note:** `better-sqlite3` is a native module and must be compiled against the Node.js version you're running. If you see a `NODE_MODULE_VERSION` mismatch error, run:
-> ```bash
-> npm rebuild better-sqlite3
-> ```
+### Environment Setup
+
+Create a `.env.local` file with your PostgreSQL connection string:
+
+```bash
+POSTGRES_URL=your_postgres_connection_string_here
+```
 
 ### Database Setup
 
-The app uses a local SQLite database. CSV data is included in the repo. Build the database with:
+Import the CSV data into your database:
 
 ```bash
-npm run db:rebuild
+npx ts-node scripts/import-csv-postgres.ts
 ```
 
 ### Running the App
@@ -76,7 +80,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - [Next.js](https://nextjs.org/) — React framework
 - [Tailwind CSS](https://tailwindcss.com/) — Styling
 - [Recharts](https://recharts.org/) — Data visualization
-- [SQLite](https://www.sqlite.org/) (`better-sqlite3`) — Local database
+- [Neon Postgres](https://neon.tech/) — Serverless PostgreSQL database
+- [Vercel](https://vercel.com/) — Deployment
 
 ---
 
