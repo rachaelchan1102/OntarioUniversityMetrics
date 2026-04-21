@@ -54,10 +54,12 @@ cd /Users/rachaelhychan/AdmissionsAverageProject && node scripts/html-to-csv.js
 ⚠️ **USE `tsx` NOT `ts-node`** (ts-node fails with ESM error)
 
 ```bash
-cd /Users/rachaelhychan/AdmissionsAverageProject && npx tsx scripts/import-csv.ts --rebuild
+cd /Users/rachaelhychan/AdmissionsAverageProject && npx tsx scripts/import-csv-postgres.ts --rebuild
 ```
 
-**Expected output:** `Database rebuilt and all CSVs imported.`
+**Expected output:** `✅ Import complete!`
+
+**Important:** Let the rebuild finish. If you interrupt it, the database will be partially filled and the frontend will show fewer rows.
 
 ### Step 5: Verify the Import
 
@@ -111,11 +113,25 @@ When using `run_task` to start the server, it may not fully initialize.
 npm run dev
 ```
 
-### Error 4: Attached HTML File Has No Data
+### Error 4: Frontend Shows Fewer Rows Than Expected
+If the API returns fewer rows than the import summary (e.g., ~5k instead of 7902), the rebuild likely stopped early or deduplication collapsed rows.
+
+**Fix:**
+1. Ensure the rebuild finishes (don’t cancel it).
+2. Verify row count via the API:
+```bash
+curl -s http://localhost:3000/api/stats | python3 -m json.tool
+```
+3. If it’s still low, rerun the rebuild:
+```bash
+npx tsx scripts/import-csv-postgres.ts --rebuild
+```
+
+### Error 5: Attached HTML File Has No Data
 The user attached a `.htm` file but it only contains wrapper HTML with an iframe.
 **Fix:** Don't parse the attached file. Find `sheet.html` in the `_files` folder in Downloads.
 
-### Error 5: Can't Find the _files Folder
+### Error 6: Can't Find the _files Folder
 **Fix:** Ask user to confirm they saved as "Webpage, Complete" (not just "Webpage, HTML Only"). Then search:
 ```bash
 ls -la ~/Downloads/ | grep "_files"
@@ -136,7 +152,7 @@ cp ~/Downloads/"2025-2026 University Applications (offers, rejections, deferals)
 cd /Users/rachaelhychan/AdmissionsAverageProject && node scripts/html-to-csv.js
 
 # 4. Import to database (USE tsx NOT ts-node!)
-npx tsx scripts/import-csv.ts --rebuild
+npx tsx scripts/import-csv-postgres.ts --rebuild
 
 # 5. Verify
 cat data/import_logs/import_summary.json
@@ -159,8 +175,8 @@ Google Sheets
 data/sheet.html
      ↓ (node scripts/html-to-csv.js)
 data/csv/2025-2026.csv
-     ↓ (npx tsx scripts/import-csv.ts --rebuild)
-SQLite Database
+     ↓ (npx tsx scripts/import-csv-postgres.ts --rebuild)
+Postgres Database
      ↓ (npm run dev)
 Website at localhost:3000
 ```

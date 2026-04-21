@@ -39,7 +39,7 @@ export async function importAllCSVsPostgres({ rebuild = false } = {}) {
 		const mapping = mapColumns(headers);
 		const academic_year = file.match(/\d{4}-\d{4}/)?.[0] || 'Unknown';
 
-		for (const rec of records) {
+		for (const [rowIndex, rec] of records.entries()) {
 			totalRows++;
 			// Required fields
 			const university = mapping.university ? rec[mapping.university] || '' : '';
@@ -127,9 +127,23 @@ export async function importAllCSVsPostgres({ rebuild = false } = {}) {
 				}
 			}
 
-			// Row hash — keyed on canonical values for consistent cross-year deduplication
+			// Row hash — based on the full raw row payload so we only dedupe truly identical rows.
+			// The previous hash (year + program + month/round + grade) collapsed many distinct submissions
+			// that happened to share the same grade in the same month.
 			const row_hash = sha256(
-				academic_year + canonical_university_norm + canonical_program_norm + (ouac_code || '') + (dateFields.admission_month_iso || '') + (dateFields.round_label || '') + admission_grade
+				JSON.stringify({
+					academic_year,
+					source_file: file,
+					row_index: rowIndex,
+					raw_record: rec,
+					canonical_university_norm,
+					canonical_program_norm,
+					ouac_code,
+					admission_grade,
+					admission_date_raw: dateRaw,
+					admission_month_iso: dateFields.admission_month_iso,
+					round_label: dateFields.round_label
+				})
 			);
 
 			allRows.push({

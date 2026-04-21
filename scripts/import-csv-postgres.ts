@@ -3,9 +3,14 @@
 
 import { config } from 'dotenv';
 import path from 'path';
+import ws from 'ws';
+import { neonConfig } from '@neondatabase/serverless';
 
 // Load .env.local file BEFORE importing anything else
 config({ path: path.join(process.cwd(), '.env.local') });
+
+// Required for Neon serverless WebSocket connections in Node.js CLI scripts
+neonConfig.webSocketConstructor = ws;
 
 // Now dynamically import the modules after env is loaded
 async function main() {
