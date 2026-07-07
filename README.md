@@ -87,5 +87,5 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Feedback
 
-If you have suggestions or find issues, feel free to open an issue or reach out.
+If you have suggestions or find issues, feel free to open an issue or reach out. Note that a Claude agent is now in charge of updating the data.
 
