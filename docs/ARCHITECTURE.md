@@ -169,7 +169,7 @@ OntarioUniversityMetrics/
 ├── package.json                  # Dependencies and scripts
 ├── tsconfig.json                 # TypeScript configuration
 ├── tailwind.config.js            # Tailwind CSS configuration
-├── next.config.js                # Next.js configuration (currently empty)
+├── next.config.js                # Next.js config (skips eslint during builds)
 ├── eslint.config.mjs             # ESLint flat config
 ├── .prettierrc                   # Prettier config (tabs, single quotes)
 ├── vercel.json                   # Vercel deployment configuration
@@ -913,8 +913,26 @@ This is why build-critical packages (`tailwindcss`, `typescript`, `postcss`, `au
 `@types/*`) live in `dependencies` rather than `devDependencies` — moving them back would break
 the Vercel build.
 
-`next.config.js` is intentionally empty. `railway.json` (NIXPACKS + `npm run start`) exists as
-an alternate target but isn't what serves the live site.
+**Two consequences of `--omit=dev` that have already bitten this project:**
+
+1. **ESLint isn't installed on Vercel**, so Next.js aborts the lint step. `next.config.js` sets
+   `eslint.ignoreDuringBuilds: true` to skip it deliberately (the build prints
+   `Skipping linting`). Lint locally or in CI with `npx next lint`.
+2. **`@types/*` in `devDependencies` are absent on Vercel.** A missing type package fails the
+   build with `TS7016: Could not find a declaration file for module 'x'` — even though the same
+   build passes locally, where devDependencies *are* installed. If you hit this, the choice is
+   either move that `@types/*` package into `dependencies`, or keep the file that needs it out of
+   the build's type-check scope.
+
+That second point is why **`tsconfig.json` excludes `scripts/`**. The CLI scripts are run with
+`tsx` (which transpiles without type-checking) and are never bundled or deployed, so they have no
+business gating the app build — `scripts/import-csv-postgres.ts` imports `ws`, and with
+`@types/ws` in `devDependencies` that broke deploys. Excluding the directory doesn't affect
+running the scripts, since `tsx` ignores `include`/`exclude` and all imports here are relative.
+The tradeoff: type errors in `scripts/` won't surface from `npx tsc --noEmit` anymore.
+
+`railway.json` (NIXPACKS + `npm run start`) exists as an alternate target but isn't what serves
+the live site.
 
 ### Build Process
 
