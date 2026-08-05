@@ -32,9 +32,10 @@
   },
   "devDependencies": {
     "@types/jsdom": "^28.0.0",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
-    "eslint": "^9.39.4",
+    "eslint": "^9.39.5",
     "eslint-config-next": "^15.5.12",
     "eslint-config-prettier": "^10.0.0",
     "eslint-plugin-react": "^7.37.0",
