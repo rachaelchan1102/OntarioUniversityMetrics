@@ -1,6 +1,6 @@
 ---
 name: update-admissions-data
-description: Update the Ontario University Metrics admissions data from a freshly downloaded Google Sheets export. Use when the user says "update the data", "update the 2025-2026 data", "follow the data update guide", or drops a new "University Applications ... Google Drive.html" file into data/. Handles finding the real sheet.html, converting to CSV, importing to Neon Postgres, and committing.
+description: Update the Ontario University Metrics admissions data from a freshly downloaded Google Sheets export. Use when the user says "update the data", "update the 2025-2026 data", "follow the data update guide", or drops a new "University Applications ... Google Drive.html" file into data/. Handles finding the real sheet.html, converting to CSV, importing to Neon Postgres, refreshing the site's "Last updated" date, and committing.
 ---
 
 # Update Admissions Data
@@ -9,6 +9,11 @@ Refresh the site's admissions dataset from a new Google Sheets export. The live 
 ([ontariouniversitymetrics.com](https://www.ontariouniversitymetrics.com/)) reads from
 Neon Postgres, so new data only appears after the DB `--rebuild` import runs.
 
+**The job is not done until the site's "Last updated" date has moved.** That date is the
+user-visible proof the refresh landed, and it only changes when the DB import runs — see
+[How the "Last updated" date works](#how-the-last-updated-date-works). Always finish with
+[step 8](#8-confirm-the-sites-last-updated-date-moved).
+
 ## Data flow
 
 ```
@@ -16,6 +21,7 @@ Google Sheet  --(save as "Webpage, Complete")-->  Downloads/<name>_files/sheet.h
    --(copy)-->  data/sheet.html
    --(node scripts/html-to-csv.js)-->  data/csv/2025-2026.csv
    --(npx tsx scripts/import-csv-postgres.ts --rebuild)-->  Neon Postgres
+                                    ^ this step is what refreshes the site's date
    --(npm run dev)-->  website
 ```
 
@@ -78,7 +84,7 @@ npx tsx scripts/import-csv-postgres.ts --rebuild
 Expected: `✅ Import complete!`. **Let the rebuild finish** — interrupting it leaves the DB
 partially filled and the site shows fewer rows than expected.
 
-### 6. Verify
+### 6. Verify the import
 
 ```bash
 cat data/import_logs/import_summary.json
@@ -99,11 +105,57 @@ doesn't block:
 npm run dev
 ```
 
-Server runs on http://localhost:3000. Confirm the row count via the API:
+Server runs on http://localhost:3000. Confirm the row count **and the date** via the API:
 
 ```bash
-curl -s http://localhost:3000/api/stats
+node -e "fetch('http://localhost:3000/api/stats').then(r=>r.json()).then(j=>console.log('rows:',j.total_records,'| last_updated:',j.last_updated))"
 ```
+
+### 8. Confirm the site's "Last updated" date moved
+
+**Do not skip this** — it's the only check the user can see from the outside.
+
+`last_updated` must be today (the moment the import ran). If it still shows the previous refresh,
+the import didn't actually touch the database and the update is incomplete, no matter how clean
+the CSV looks.
+
+```bash
+# Local (dev server running)
+node -e "fetch('http://localhost:3000/api/stats').then(r=>r.json()).then(j=>console.log('local :',j.last_updated))"
+
+# Live site — the real check, once the import has run against the shared Neon DB
+node -e "fetch('https://www.ontariouniversitymetrics.com/api/stats').then(r=>r.json()).then(j=>console.log('live  :',j.last_updated,'\nrows  :',j.total_records))"
+```
+
+The live check needs **no deploy** — the site reads Neon at request time, so a successful import
+shows up immediately on production. Conversely, deploying/pushing alone will *never* move the
+date.
+
+Report the before/after date to the user explicitly, e.g.
+`Last updated: March 9, 2026 → August 5, 2026 (5,638 rows)`.
+
+## How the "Last updated" date works
+
+There is **no hardcoded date anywhere** — nothing to hand-edit, and no config to bump. The chain is:
+
+```
+ETL sets imported_at = new Date().toISOString() on every row     (lib/etl/importCsvPostgres.ts)
+  -> /api/stats returns last_updated = MAX(imported_at)          (app/api/stats/route.ts)
+  -> homepage renders "Last updated: <that date>"                (app/page.tsx, bottom of page)
+```
+
+Consequences worth internalizing:
+
+- **Only the DB import moves the date.** Regenerating the CSV, committing, pushing, and
+  redeploying all leave it untouched, because it lives in Postgres, not in the repo.
+- **`--rebuild` always sets it to now**, since every row is deleted and reinserted with a fresh
+  `imported_at`. Append mode (`db:update`) also moves it, because `MAX()` picks up the new rows.
+- **It reflects import time, not data recency.** It answers "when was the site last refreshed",
+  not "how recent is the newest offer in the sheet". If the user wants the latter, that's
+  `node scripts/most-recent-date.js`, which reports the most recent `admission_date` in
+  `data/csv/2025-2026.csv` — a different number, not displayed on the site.
+- **A stale date after a "successful" update means the import didn't run.** That is the single
+  most likely failure, and it is silent — see the `.env.local` gotcha below.
 
 ## The `.env.local` gotcha (why the import may not run "here")
 
@@ -120,6 +172,11 @@ If `.env.local` / `POSTGRES_URL` is missing, do NOT invent credentials. Instead:
 
 The connection string is also available as an env var fallback (`DATABASE_URL`).
 
+**Say this out loud to the user when the import is skipped:** the site's data *and* its
+"Last updated" date will both stay stale until someone runs the import — committing and pushing
+does not refresh either. Don't report the update as finished; report it as "CSV ready, import
+pending", and state which date the site is still showing.
+
 ## Committing
 
 Stage only the data files — not `package-lock.json` (npm install may churn it) or the wrapper
@@ -135,11 +192,13 @@ person on the machine-with-credentials knows what to run:
 ```
 Update 2025-2026 admissions data (OLD -> NEW rows)
 
-DB import NOT run here (no .env.local). To finish on the machine with credentials:
+DB import NOT run here (no .env.local), so the live site still shows the old
+data and the old "Last updated" date. To finish on the machine with credentials:
   1. git pull
   2. npx tsx scripts/import-csv-postgres.ts --rebuild
   3. cat data/import_logs/import_summary.json
-  4. npm run dev  ->  verify http://localhost:3000
+  4. Confirm the date moved:
+     node -e "fetch('https://www.ontariouniversitymetrics.com/api/stats').then(r=>r.json()).then(j=>console.log(j.last_updated,j.total_records))"
 ```
 
 **Identity note:** on a machine that isn't the owner's usual one, git may auto-detect the wrong
@@ -158,6 +217,9 @@ per-repo with `git config --local user.name` / `user.email`), and amend a wrong 
 | Can't find `_files` folder | User saved "Webpage, HTML Only" — ask them to re-save as "Webpage, Complete" |
 | Import can't connect / no `POSTGRES_URL` | No `.env.local` on this machine — see the `.env.local` gotcha above |
 | Port 3000 in use | Kill the old dev server (see step 7) before starting a new one |
+| **Site's "Last updated" date didn't change** | The import never ran (or failed partway). It's `MAX(imported_at)` from Postgres — pushing/deploying can't move it. Rerun `--rebuild` and recheck step 8 |
+| `last_updated` is `null` | The `admissions` table is empty — the rebuild deleted rows then failed before inserting. Rerun `--rebuild` |
+| Live date differs from local date | Both read the same Neon DB, so they can't genuinely disagree — you're looking at a cached page. Hard-refresh, or trust the `/api/stats` output over the rendered page |
 
 ## Reference: how the CSV maps to the spreadsheet
 
