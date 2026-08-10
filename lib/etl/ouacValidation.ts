@@ -180,15 +180,21 @@ const MANUAL_OVERRIDES: Record<string, string> = {
 };
 
 
-// Queen's admits Arts and Psychology under a single code (QA), so every variant of those
-// program names has to collapse to it. This can't live in MANUAL_OVERRIDES because it matches
-// on a substring rather than an exact normalized name.
+// Queen's admits Arts and Psychology under a single code (QA = "Arts"), so every variant of
+// those program names has to collapse to it. This can't live in MANUAL_OVERRIDES because it
+// matches on a substring rather than an exact normalized name.
+//
+// Takes `universityNorm` (normalizeUniversity output, e.g. "queens university") — NOT the raw
+// CSV value. Every Queen's row in the source sheets has university = "Queen's", which strips to
+// "queens" and would never match; passing the raw value silently disabled this override
+// entirely, which is why a one-off patch script used to be needed to fix the DB afterwards.
+//
 // Returns the forced { code, programNorm } or null if the row isn't a Queen's Arts/Psych entry.
 export function queensArtsOverride(
-  rawUniversity: string,
+  universityNorm: string,
   rawProgram: string
 ): { code: string; programNorm: string } | null {
-  const u = rawUniversity.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const u = universityNorm.toLowerCase().replace(/[^a-z0-9]/g, '');
   const p = rawProgram.toLowerCase();
   const isQueens = u.includes('queensuniversity');
   const isArtsOrPsych = p.includes('arts') || p.includes('psychology');

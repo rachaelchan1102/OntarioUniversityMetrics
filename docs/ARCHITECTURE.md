@@ -526,13 +526,19 @@ any Queen's program containing "arts" or "psychology" (excluding concurrent/educ
 `matchToOuac` and can't live in `MANUAL_OVERRIDES` because it matches on a substring rather than
 an exact normalized name.
 
-> ⚠️ **This override currently never fires.** It compares against the *raw* university string,
-> and every Queen's row in the CSVs has `university` = `"Queen's"` (718 rows), which strips to
-> `"queens"` — never containing `"queensuniversity"`. Verified against all 10,103 rows: zero
-> matches. That is why a one-off `patch-queens-arts-ouac.js` script had to exist to fix the
-> database after the fact. Passing `university_norm` ("queens university") instead of the raw
-> value would activate it and reclassify **53 rows** to `QA`/"arts" — a deliberate data change,
-> so it has been left alone rather than fixed silently.
+It must be passed `university_norm`, not the raw CSV value. For a long time it was given the raw
+value — and every Queen's row in the sheets has `university` = `"Queen's"` (718 rows), which
+strips to `"queens"` and never contains `"queensuniversity"` — so **the override silently never
+fired at all**. That is why a one-off `patch-queens-arts-ouac.js` script had to exist to repair
+the database afterwards. It now receives `university_norm` and fires on 53 rows.
+
+**What activating it actually changed: nothing, on today's data.** All 53 of those rows already
+carry `QA` in the spreadsheet's own OUAC Code column, so tier 1 was assigning `QA` regardless.
+Its real value is insurance against a missing code: with the code column blank, fuzzy matching
+alone resolves only 21 of the 53, because `normalizeProgram` keeps non-noise parentheticals —
+`"Arts (Economics)"` becomes `"arts economics"`, which scores 0.5 against `"arts"`, under the 0.80
+threshold. The other 32 would fall back to legacy slugs and fragment into separate program pages.
+The override makes the grouping independent of whether a submitter filled the column in.
 
 ### Step 5: OUAC Backfill (`lib/etl/ouacBackfill.ts`)
 
@@ -1010,10 +1016,6 @@ of the codebase treats `(ouac_code, university_norm)` as a program's identity. C
 across schools collapse into one. Should be `COUNT(DISTINCT (ouac_code, university_norm))`.
 Changing it moves a number on the live homepage, so it's a deliberate decision, not a cleanup.
 
-**The Queen's Arts/Psychology override never fires.** It matches on the raw `university` value,
-which is always `"Queen's"` in the CSVs, so the intended `QA` grouping has never been applied by
-the ETL. Fixing it reclassifies 53 rows — see the callout in [§5](#step-4-ouac-code-matching-libetlouacvalidationts).
-
 **`db:update` is misleading.** The `--update` flag isn't read by the script; it only means "skip
 the rebuild". Because `row_index` participates in `row_hash`, appending against a reordered
 sheet duplicates rows. Use `db:rebuild`.
@@ -1039,6 +1041,10 @@ the deployed tree slightly at the cost of that guarantee.
   iteration order.
 - **Triplicated title-casing** — consolidated into `lib/format/universityNames.ts`. The three
   copies had drifted, so the same university rendered differently per page.
+- **Queen's Arts/Psychology override never firing** — it was passed the raw `university` value
+  (`"Queen's"`) instead of `university_norm`, so it silently did nothing. Now active on 53 rows.
+  No change to current data (those rows already carry `QA` in the sheet), but it stops 32 of them
+  fragmenting if the OUAC column is ever left blank.
 - **Dead code** — removed `getProgramBySlug`/`getProgramIdentifier`/`getProgramDisplayInfo`,
   `computeInsights`, `levenshteinSimilarity`, four unused components
   (`AlternatingTop5Lists`, `KPIGrid`, `Skeletons`, `VerticalCarousel`), and seven unused

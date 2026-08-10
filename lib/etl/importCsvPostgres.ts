@@ -102,8 +102,9 @@ export async function importAllCSVsPostgres({ rebuild = false } = {}) {
 			let canonical_program_norm = program_name_norm;
 			let canonical_university_norm = university_norm;
 
-			// Queen's Arts/Psychology collapses to one code — takes precedence over fuzzy matching
-			const queensOverride = queensArtsOverride(university, program_name);
+			// Queen's Arts/Psychology collapses to one code — takes precedence over fuzzy matching.
+			// Must be passed university_norm, not the raw value (see queensArtsOverride).
+			const queensOverride = queensArtsOverride(university_norm, program_name);
 			if (queensOverride) {
 				ouac_code = queensOverride.code;
 				canonical_program_norm = queensOverride.programNorm;
