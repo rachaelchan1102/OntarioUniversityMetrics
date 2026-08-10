@@ -32,27 +32,3 @@ export function computeYoY(rows: any[]): number | null {
 	const deltas = means.slice(1).map((m, i) => m - means[i]);
 	return deltas.reduce((a, b) => a + b, 0) / deltas.length;
 }
-
-export function computeInsights(rows: any[]) {
-	if (!rows.length) return [];
-	const byMonth: Record<string, number[]> = {};
-	for (const r of rows) {
-		const key = r.admission_month_label || r.round_label || 'Unknown';
-		if (!byMonth[key]) byMonth[key] = [];
-		byMonth[key].push(r.admission_grade);
-	}
-	const months = Object.entries(byMonth).map(([k, v]: [string, any[]]) => ({
-		label: k,
-		mean: v.reduce((a, b) => a + b, 0) / v.length,
-		n: v.length
-	})).filter(m => m.label !== 'Unknown');
-	if (!months.length) return [];
-	const most = months.reduce((a, b) => (a.mean > b.mean ? a : b));
-	const least = months.reduce((a, b) => (a.mean < b.mean ? a : b));
-	const pctSupp = rows.filter(r => r.supplemental_required).length / rows.length * 100;
-	return [
-		`Most competitive: ${most.label} (${most.mean.toFixed(1)})`,
-		`Least competitive: ${least.label} (${least.mean.toFixed(1)})`,
-		`Supplemental required: ${pctSupp.toFixed(1)}%`
-	];
-}

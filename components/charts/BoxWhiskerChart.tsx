@@ -1,5 +1,5 @@
 'use client';
-import { useTheme } from './ThemeProvider';
+import { useTheme } from '../theme/ThemeProvider';
 
 interface BoxWhiskerProps {
   min: number;

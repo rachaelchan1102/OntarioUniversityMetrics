@@ -1,8 +1,8 @@
 import '../styles/globals.css';
 import type { Metadata } from 'next';
 import Script from 'next/script';
-import ThemeProvider from '../components/ThemeProvider';
-import ThemeToggle from '../components/ThemeToggle';
+import ThemeProvider from '../components/theme/ThemeProvider';
+import ThemeToggle from '../components/theme/ThemeToggle';
 
 export const metadata: Metadata = {
   title: 'Ontario University Metrics',

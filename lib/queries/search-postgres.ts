@@ -1,21 +1,6 @@
 import { query } from '../db/client-postgres';
 import { getCanonicalNames, isValidOuacCode } from '../etl/ouacValidation';
-
-function titleCase(s: string): string {
-	return s.replace(/\b\w/g, c => c.toUpperCase());
-}
-
-const UNIVERSITY_DISPLAY: Record<string, string> = {
-	"queens university": "Queen's University",
-	"mcmaster university": "McMaster University",
-	"ocad university": "OCAD University",
-	"ubc": "University of British Columbia",
-	"tmu": "Toronto Metropolitan University",
-};
-
-function displayUniversity(norm: string): string {
-	return UNIVERSITY_DISPLAY[norm.toLowerCase()] ?? titleCase(norm);
-}
+import { titleCase, displayUniversity } from '../format/universityNames';
 
 export interface SearchResult {
 	slug: string;

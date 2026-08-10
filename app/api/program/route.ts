@@ -3,16 +3,7 @@ import { getProgramRows } from '../../../lib/queries/program-postgres';
 import { getCanonicalNames } from '../../../lib/etl/ouacValidation';
 import { requiresSupplemental } from '../../../lib/etl/supplementalCodes';
 import { getPublishedAverage } from '../../../lib/etl/admissionAverages';
-
-const UNIVERSITY_DISPLAY: Record<string, string> = {
-  "queens university": "Queen's University",
-  "mcmaster university": "McMaster University",
-  "ocad university": "OCAD University",
-};
-
-function displayUniversity(norm: string, rawFallback: string): string {
-  return UNIVERSITY_DISPLAY[norm?.toLowerCase()] ?? rawFallback;
-}
+import { displayUniversity } from '../../../lib/format/universityNames';
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);

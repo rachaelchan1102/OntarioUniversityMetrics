@@ -59,15 +59,14 @@ free-text typed by humans into a spreadsheet. The entire value of the site depen
 | **CSV parsing** | csv-parse | Reads `data/csv/*.csv` during import |
 | **HTML scraping** | cheerio | Extracts the sheet table in `scripts/html-to-csv.js` |
 | **Date parsing** | date-fns | Multi-format date parsing in the ETL |
-| **Fuzzy matching** | fast-levenshtein | Available for string distance (see note in §5) |
 | **Deployment** | Vercel | Hosting, CI/CD, serverless functions |
 | **Domain** | ontariouniversitymetrics.com | Custom domain via DNS |
 
 There is no ORM, no state-management library, and no test framework. `railway.json` exists as an
 alternate deploy target but Vercel is what's live.
 
-> `papaparse` and `jsdom` are listed in `package.json` but are not imported anywhere. They're
-> leftovers from earlier versions of the HTML→CSV converter and are safe to remove.
+Fuzzy matching uses a hand-written Jaccard token-set score (`lib/etl/similarity.ts`) rather than
+an edit-distance library — see §5 for why.
 
 ---
 
@@ -87,25 +86,25 @@ OntarioUniversityMetrics/
 │       └── [slug]/page.tsx      # Dynamic program detail page
 │
 ├── components/                   # React UI components (all client components)
-│   ├── SearchBar.tsx            # Search input with debounced fetch
-│   ├── SearchResultsDropdown.tsx # Dropdown list of search results
-│   ├── YearFilter.tsx           # Year filter buttons
-│   ├── StatCard.tsx             # KPI stat card component
-│   ├── KPIGrid.tsx              # Grid of KPI cards
-│   ├── ChartCard.tsx            # Wrapper for chart sections
-│   ├── TrendLineChart.tsx       # Line chart for trends
-│   ├── HistogramChart.tsx       # Histogram for grade distribution
-│   ├── BoxWhiskerChart.tsx      # Box-and-whisker plot
-│   ├── AvgByMonthChart.tsx      # Bar chart by admission month/round
-│   ├── DataTable.tsx            # Tabular data display
-│   ├── HorizontalCarousel.tsx   # Swipeable carousel (homepage slides)
-│   ├── VerticalCarousel.tsx     # Vertical variant
-│   ├── AlternatingTop5Lists.tsx # Alternating highest/lowest top-5 lists
-│   ├── NotesDropdown.tsx        # Expandable notes/disclaimers
-│   ├── EmptyState.tsx           # "No data" placeholder
-│   ├── ThemeToggle.tsx          # Dark/light mode toggle
-│   ├── ThemeProvider.tsx        # Theme context provider
-│   └── Skeletons.tsx            # Loading skeleton components
+│   ├── charts/                  # Recharts wrappers — all read theme via useTheme()
+│   │   ├── TrendLineChart.tsx   # Line chart for trends
+│   │   ├── HistogramChart.tsx   # Grade distribution (5-point bins)
+│   │   ├── BoxWhiskerChart.tsx  # Box-and-whisker plot
+│   │   ├── AvgByMonthChart.tsx  # Bar chart by admission month/round
+│   │   └── ChartCard.tsx        # Wrapper/frame for chart sections
+│   ├── search/
+│   │   ├── SearchBar.tsx        # Search input (250 ms debounce)
+│   │   └── SearchResultsDropdown.tsx # Dropdown list of results
+│   ├── theme/
+│   │   ├── ThemeProvider.tsx    # Theme context provider
+│   │   └── ThemeToggle.tsx      # Dark/light mode toggle
+│   └── ui/                      # Generic presentational pieces
+│       ├── StatCard.tsx         # KPI stat card
+│       ├── DataTable.tsx        # Tabular data display
+│       ├── YearFilter.tsx       # Year filter buttons
+│       ├── HorizontalCarousel.tsx # Swipeable carousel (homepage slides)
+│       ├── NotesDropdown.tsx    # Expandable notes/disclaimers
+│       └── EmptyState.tsx       # "No data" placeholder
 │
 ├── lib/                          # Backend logic
 │   ├── db/                      # Database layer
@@ -126,15 +125,18 @@ OntarioUniversityMetrics/
 │   │   ├── ouacValidation.ts    # Match to official OUAC codes (tiered)
 │   │   ├── ouacBackfill.ts      # Backfill missing codes from matched rows
 │   │   ├── ouacPrograms.json    # Scraped OUAC program database (1,409 programs)
-│   │   ├── similarity.ts        # Jaccard token-set + Levenshtein helpers
+│   │   ├── similarity.ts        # Jaccard token-set similarity
 │   │   ├── supplementalCodes.ts # 52 OUAC codes requiring supplemental apps
 │   │   ├── admissionAverages.ts # University-published admission averages
 │   │   └── logs.ts              # Import logging utilities
 │   │
-│   └── stats/                   # Statistics computation (runs client-side)
-│       ├── compute.ts           # KPIs, YoY change, insights
-│       ├── histogram.ts         # Bin grades into histogram
-│       └── percentiles.ts       # Linear-interpolated percentiles
+│   ├── stats/                   # Statistics computation (runs client-side)
+│   │   ├── compute.ts           # KPIs, YoY change
+│   │   ├── histogram.ts         # Bin grades into histogram
+│   │   └── percentiles.ts       # Linear-interpolated percentiles
+│   │
+│   └── format/                  # Display formatting
+│       └── universityNames.ts   # titleCase + displayUniversity (single source of truth)
 │
 ├── data/                         # Data files
 │   ├── csv/                     # Extracted CSV data by year
@@ -151,8 +153,7 @@ OntarioUniversityMetrics/
 │   ├── import-csv-postgres.ts   # Main import entrypoint (loads .env.local)
 │   ├── html-to-csv.js           # sheet.html → data/csv/2025-2026.csv (cheerio)
 │   ├── scrape-ouac.py           # Scrape ouinfo.ca → ouacPrograms.json
-│   ├── most-recent-date.js      # Find latest date present in the sheet
-│   └── patch-queens-arts-ouac.js # One-off Queen's Arts backfill patch
+│   └── most-recent-date.js      # Find latest admission_date present in the CSV
 │
 ├── docs/
 │   ├── ARCHITECTURE.md          # This file
@@ -514,15 +515,24 @@ statistics.
 
 **Similarity (`lib/etl/similarity.ts`)** is Jaccard token-set overlap — `|A∩B| / |A∪B|` over
 word sets — so it's word-order independent ("Science Computer" matches "Computer Science") and
-insensitive to punctuation. `levenshteinSimilarity()` is exported alongside it but **is not used
-by the matcher**; only `tokenSetSimilarity` is. The practical consequence is that
-single-character typos inside a word are not tolerated, only reordering and extra/missing words.
+insensitive to punctuation. There is deliberately no edit-distance fallback: single-character
+typos inside a word are **not** tolerated, only reordering and extra/missing words. (A
+`levenshteinSimilarity` helper used to exist here but was never wired into the matcher, so it
+was removed.)
 
-**Special case: Queen's Arts/Psychology.** Handled inline in the import loop
-(`importCsvPostgres.ts:49-59`, `117-128`) rather than via `MANUAL_OVERRIDES` — any Queen's
-program containing "arts" or "psychology" (excluding concurrent/education) is forced to code
-`QA` and program `arts`, because Queen's admits these under one code. `scripts/patch-queens-arts-ouac.js`
-is the one-off script that retro-applied this to an already-imported database.
+**Special case: Queen's Arts/Psychology.** `queensArtsOverride()` in `ouacValidation.ts` forces
+any Queen's program containing "arts" or "psychology" (excluding concurrent/education) to code
+`QA` and program `arts`, because Queen's admits these under one code. It's checked before
+`matchToOuac` and can't live in `MANUAL_OVERRIDES` because it matches on a substring rather than
+an exact normalized name.
+
+> ⚠️ **This override currently never fires.** It compares against the *raw* university string,
+> and every Queen's row in the CSVs has `university` = `"Queen's"` (718 rows), which strips to
+> `"queens"` — never containing `"queensuniversity"`. Verified against all 10,103 rows: zero
+> matches. That is why a one-off `patch-queens-arts-ouac.js` script had to exist to fix the
+> database after the fact. Passing `university_norm` ("queens university") instead of the raw
+> value would activate it and reclassify **53 rows** to `QA`/"arts" — a deliberate data change,
+> so it has been left alone rather than fixed silently.
 
 ### Step 5: OUAC Backfill (`lib/etl/ouacBackfill.ts`)
 
@@ -542,11 +552,14 @@ INSERT INTO admissions (...) VALUES ($1, …, $19)
 ON CONFLICT (row_hash) DO NOTHING
 ```
 
-The loop slices `allRows` into chunks of `BATCH_SIZE = 100`, but issues **one `INSERT` per row**
-inside each chunk — `BATCH_SIZE` currently only controls progress-log frequency, not statement
-batching. With ~6,500 rows that's ~6,500 round-trips to Neon, which is why a rebuild takes
-minutes and why the refresh guide insists on letting it finish. See
-[§13](#13-known-issues--gotchas).
+Rows are inserted in genuinely batched multi-row statements: 100 rows per `INSERT`, built as
+`($1..$19), ($20..$38), …` with 1,900 bound parameters per statement (well under Postgres's
+65,535 limit). Duplicate `row_hash` values are filtered out in JS beforehand, so a multi-row
+statement can never conflict with itself.
+
+This previously sliced into batches of 100 but then issued **one `INSERT` per row** inside each
+slice — `BATCH_SIZE` only controlled log frequency — meaning ~6,500 sequential round-trips to
+Neon over HTTP. That was the reason a rebuild took minutes and had to not be interrupted.
 
 ### Step 7: Logging (`lib/etl/logs.ts`)
 
@@ -990,46 +1003,46 @@ Vercel → Settings → Environment Variables.
 
 ## 13. Known Issues & Gotchas
 
-Accurate as of the last review of this document. These are real characteristics of the current
-code, not hypotheticals.
-
-**Inserts are not actually batched.** `importCsvPostgres.ts:186-207` slices into 100-row
-batches, then runs one `INSERT` per row inside the loop. `BATCH_SIZE` only affects how often
-progress is logged. Roughly 6,500 sequential HTTP round-trips to Neon is the reason a rebuild is
-slow and must not be interrupted. Fixing this means building multi-row `VALUES` tuples per
-batch.
-
-**The backfill patch is order-dependent.** `importCsvPostgres.ts:170-180` re-walks `allRows` and
-`.shift()`s off the `updated` array, which is only correct while `backfillOuac` returns results
-in exactly the same order and count as its input. Nothing enforces that coupling. Keying by row
-hash instead of relying on array order would make it safe.
+Real characteristics of the current code, not hypotheticals.
 
 **`total_programs` undercounts.** `/api/stats` counts `DISTINCT ouac_code` globally, but the rest
 of the codebase treats `(ouac_code, university_norm)` as a program's identity. Codes shared
 across schools collapse into one. Should be `COUNT(DISTINCT (ouac_code, university_norm))`.
+Changing it moves a number on the live homepage, so it's a deliberate decision, not a cleanup.
 
-**Dead code.** `getProgramBySlug`, `getProgramIdentifier`, and `getProgramDisplayInfo`
-(`program-postgres.ts:84-197`) are exported but never imported. They implement an older slug
-convention (bare OUAC code with no `--`) that `getProgramRows` superseded, and they would
-mis-group codes shared across universities. `computeInsights` (`compute.ts:36`) is likewise
-unused. Also unused: `levenshteinSimilarity`, and the `papaparse`/`jsdom` dependencies.
+**The Queen's Arts/Psychology override never fires.** It matches on the raw `university` value,
+which is always `"Queen's"` in the CSVs, so the intended `QA` grouping has never been applied by
+the ETL. Fixing it reclassifies 53 rows — see the callout in [§5](#step-4-ouac-code-matching-libetlouacvalidationts).
 
 **`db:update` is misleading.** The `--update` flag isn't read by the script; it only means "skip
 the rebuild". Because `row_index` participates in `row_hash`, appending against a reordered
 sheet duplicates rows. Use `db:rebuild`.
 
-**Queen's Arts/Psych is special-cased in the wrong place.** The override is inlined in the
-import loop rather than living in `MANUAL_OVERRIDES` alongside every other override, so it's
-easy to miss when auditing the matching rules.
-
-**Title-casing logic is triplicated.** `app/page.tsx`, `lib/queries/search-postgres.ts`, and
-`app/api/program/route.ts` each carry their own `titleCase` + university-override map, and they
-don't agree (only `page.tsx` handles Nipissing; only `search-postgres.ts` handles `ubc`/`tmu`).
-Worth extracting into one module.
+**`imported_at` is per-row, set in the build loop.** Harmless today, but it means a very long
+import spreads timestamps across its duration. `MAX(imported_at)` (the site's "Last updated")
+therefore reports when the import *finished*, roughly.
 
 **No tests.** There is no test framework configured. The ETL's normalization and matching rules
-are the highest-value target for tests if that changes, since they're pure functions with
-well-understood inputs.
+are the highest-value target, since they're pure functions with well-understood inputs —
+`normalizeProgram`, `matchToOuac`, and `normalizeDateFields` especially.
+
+**`ws` is a production dependency for a CLI-only need.** `scripts/import-csv-postgres.ts` needs it
+for Neon's WebSocket transport, but that script never runs on Vercel. It's in `dependencies` so a
+local `--omit=dev` install can still run the import; moving it to `devDependencies` would shrink
+the deployed tree slightly at the cost of that guarantee.
+
+### Fixed previously (kept for context)
+
+- **Unbatched inserts** — now genuine multi-row `INSERT`s, ~65× fewer round-trips.
+- **Order-dependent backfill** — `backfillOuac` now mutates rows in place instead of the caller
+  `.shift()`-ing a parallel array; candidates are snapshotted so results don't depend on
+  iteration order.
+- **Triplicated title-casing** — consolidated into `lib/format/universityNames.ts`. The three
+  copies had drifted, so the same university rendered differently per page.
+- **Dead code** — removed `getProgramBySlug`/`getProgramIdentifier`/`getProgramDisplayInfo`,
+  `computeInsights`, `levenshteinSimilarity`, four unused components
+  (`AlternatingTop5Lists`, `KPIGrid`, `Skeletons`, `VerticalCarousel`), and seven unused
+  dependencies.
 
 ---
 
@@ -1053,9 +1066,10 @@ well-understood inputs.
 | `lib/queries/program-postgres.ts` | Slug parsing + program SQL |
 | `lib/stats/compute.ts` | KPIs, YoY |
 | `scripts/html-to-csv.js` | sheet.html → CSV (hardcoded column indices) |
+| `lib/format/universityNames.ts` | Display names — single source of truth |
 | `scripts/scrape-ouac.py` | Builds `ouacPrograms.json` from ouinfo.ca |
-| `components/SearchBar.tsx` | Search input (250 ms debounce) |
-| `components/HistogramChart.tsx` | Grade histogram (5-point bins) |
+| `components/search/SearchBar.tsx` | Search input (250 ms debounce) |
+| `components/charts/HistogramChart.tsx` | Grade histogram (5-point bins) |
 
 ---
 

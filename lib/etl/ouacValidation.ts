@@ -180,6 +180,25 @@ const MANUAL_OVERRIDES: Record<string, string> = {
 };
 
 
+// Queen's admits Arts and Psychology under a single code (QA), so every variant of those
+// program names has to collapse to it. This can't live in MANUAL_OVERRIDES because it matches
+// on a substring rather than an exact normalized name.
+// Returns the forced { code, programNorm } or null if the row isn't a Queen's Arts/Psych entry.
+export function queensArtsOverride(
+  rawUniversity: string,
+  rawProgram: string
+): { code: string; programNorm: string } | null {
+  const u = rawUniversity.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const p = rawProgram.toLowerCase();
+  const isQueens = u.includes('queensuniversity');
+  const isArtsOrPsych = p.includes('arts') || p.includes('psychology');
+  const isExcluded = p.includes('concurrent') || p.includes('education');
+  if (isQueens && isArtsOrPsych && !isExcluded) {
+    return { code: 'QA', programNorm: 'arts' };
+  }
+  return null;
+}
+
 // Helper: If a record has a valid OUAC code, return the canonical code for that university if possible
 export function autoMapValidOuacCode(rawCode: string | null | undefined, universityNorm: string): string | null {
   if (!rawCode) return null;

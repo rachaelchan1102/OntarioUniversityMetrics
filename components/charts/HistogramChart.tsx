@@ -2,8 +2,8 @@
 import {
   BarChart, Bar, Cell, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer,
 } from 'recharts';
-import { computeHistogram } from '../lib/stats/histogram';
-import { useTheme } from './ThemeProvider';
+import { computeHistogram } from '../../lib/stats/histogram';
+import { useTheme } from '../theme/ThemeProvider';
 
 // Pastel palette — each bin gets a distinct colour
 const BIN_COLORS = [

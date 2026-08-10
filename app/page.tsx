@@ -1,11 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import SearchBar from '../components/SearchBar';
-import ThemeToggle from '../components/ThemeToggle';
-import TrendLineChart from '../components/TrendLineChart';
-import HorizontalCarousel from '../components/HorizontalCarousel';
-import NotesDropdown from '../components/NotesDropdown';
+import SearchBar from '../components/search/SearchBar';
+import ThemeToggle from '../components/theme/ThemeToggle';
+import TrendLineChart from '../components/charts/TrendLineChart';
+import HorizontalCarousel from '../components/ui/HorizontalCarousel';
+import NotesDropdown from '../components/ui/NotesDropdown';
+import { displayUniversity } from '../lib/format/universityNames';
 
 interface YearPoint {
   academic_year: string;
@@ -38,23 +39,8 @@ const KPICOLORS = {
   pink:   { icon: 'bg-pink-100 dark:bg-pink-900/60',    iconText: 'text-pink-500 dark:text-pink-400',   val: 'text-pink-700 dark:text-pink-300' },
 } as const;
 
-const LOWERCASE_WORDS = new Set(['of', 'the', 'and', 'at', 'in', 'for', 'a', 'an']);
-const UNIVERSITY_NAME_OVERRIDES: Record<string, string> = {
-  'queens university': "Queen's University",
-  'wilfrid laurier university': 'Wilfrid Laurier University',
-  'mcmaster university': 'McMaster University',
-  'toronto metropolitan university': 'Toronto Metropolitan University',
-  'nipissing': 'Nipissing University',
-};
-function titleCase(str: string) {
-  const lower = str.toLowerCase();
-  if (UNIVERSITY_NAME_OVERRIDES[lower]) return UNIVERSITY_NAME_OVERRIDES[lower];
-  return str.replace(/\S+/g, (word, offset) =>
-    offset === 0 || !LOWERCASE_WORDS.has(word.toLowerCase())
-      ? word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-      : word.toLowerCase()
-  );
-}
+// University display names come from lib/format/universityNames (single source of truth).
+const titleCase = displayUniversity;
 
 function KPICard({
   icon, label, value, sub, color = 'blue',
@@ -71,8 +57,6 @@ function KPICard({
       <div className={`mt-0.5 flex items-center justify-center w-9 h-9 rounded-xl shrink-0 ${c.icon}`}>
         <span className={c.iconText}>{icon}</span>
       </div>
-              {/* Subtle parallax SVG wave divider */}
-              {/* This divider is now placed after the KPI cards, before Explore Programs */}
       <div className="min-w-0">
         <p className="text-xs font-medium mb-0.5 text-slate-500 dark:text-slate-200">{label}</p>
         <p className={`text-2xl font-bold leading-tight ${c.val}`}>{value}</p>

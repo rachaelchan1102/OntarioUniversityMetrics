@@ -8,7 +8,7 @@ import { normalizeStatus } from './normalizeStatus';
 import { normalizeGrade, normalizeUniversity, normalizeProgram } from './normalize';
 import { normalizeDateFields } from './normalizeDates';
 import { buildOuacMap, backfillOuac } from './ouacBackfill';
-import { matchToOuac } from './ouacValidation';
+import { matchToOuac, queensArtsOverride } from './ouacValidation';
 import { logImportSummary, logUnmatchedOUAC } from './logs';
 import { query } from '../db/client-postgres';
 import { migrate } from '../db/schema-postgres';
@@ -45,18 +45,6 @@ export async function importAllCSVsPostgres({ rebuild = false } = {}) {
 			const university = mapping.university ? rec[mapping.university] || '' : '';
 			const program_name = mapping.program_name ? rec[mapping.program_name] || '' : '';
 			const admission_grade_raw = mapping.admission_grade ? rec[mapping.admission_grade] : undefined;
-
-			// --- Queen's Arts/Psychology override ---
-			function isQueensArtsPsych(university: string, program: string): boolean {
-				const u = university.toLowerCase().replace(/[^a-z0-9]/g, '');
-				const p = program.toLowerCase();
-				return (
-					(u.includes("queensuniversity") || u.includes("queen s university") || u.includes("queen'suniversity")) &&
-					(p.includes('arts') || p.includes('psychology')) &&
-					!p.includes('concurrent') &&
-					!p.includes('education')
-				);
-			}
 
 			if (!university || !program_name || admission_grade_raw === undefined) {
 				droppedRows++;
@@ -114,10 +102,11 @@ export async function importAllCSVsPostgres({ rebuild = false } = {}) {
 			let canonical_program_norm = program_name_norm;
 			let canonical_university_norm = university_norm;
 
-			// --- Queen's Arts/Psychology override ---
-			if (isQueensArtsPsych(university, program_name)) {
-				ouac_code = 'QA';
-				canonical_program_norm = 'arts';
+			// Queen's Arts/Psychology collapses to one code — takes precedence over fuzzy matching
+			const queensOverride = queensArtsOverride(university, program_name);
+			if (queensOverride) {
+				ouac_code = queensOverride.code;
+				canonical_program_norm = queensOverride.programNorm;
 			} else {
 				const ouacMatch = matchToOuac(rawOuacCode, program_name_norm, university_norm);
 				if (ouacMatch) {
@@ -166,48 +155,60 @@ export async function importAllCSVsPostgres({ rebuild = false } = {}) {
 		}
 	}
 
-	// OUAC backfill for missing codes (esp 2022-2023)
+	// OUAC backfill for missing codes (esp 2022-2023).
+	// backfillOuac mutates the rows it's given, and those are references into allRows,
+	// so the codes land on the originals without any re-association step.
 	const ouacMap = buildOuacMap(allRows.filter(r => r.ouac_code));
 	const missingOuacRows = allRows.filter(r => !r.ouac_code);
 	if (missingOuacRows.length) {
 		const { updated, unmatched } = backfillOuac(missingOuacRows, ouacMap, allRows, logUnmatchedOUAC);
-		// patch allRows in-place with the backfilled codes
-		for (let i = 0; i < allRows.length; ++i) {
-			if (!allRows[i].ouac_code) {
-				allRows[i].ouac_code = updated.shift()?.ouac_code || null;
-			}
-		}
+		console.log(`OUAC backfill: filled ${updated.length}, still unmatched ${unmatched.length}`);
 	}
 
-	// Insert rows in batches (Postgres)
+	// Insert in genuinely batched multi-row statements. This used to slice into batches but then
+	// issue one INSERT per row inside each slice — ~6,500 sequential round-trips to Neon over
+	// HTTP, which is why a rebuild took minutes and must not be interrupted.
+	const COLUMNS = [
+		'row_hash', 'academic_year', 'university', 'university_norm', 'program_name',
+		'program_name_norm', 'ouac_code', 'admission_grade', 'admission_date_raw',
+		'admission_date_iso', 'admission_month_iso', 'admission_month_label', 'admission_year',
+		'round_label', 'round_order', 'supplemental_required', 'status_normalized',
+		'source_file', 'imported_at'
+	] as const;
+
+	// Drop in-batch duplicates up front. ON CONFLICT still guards against re-running an import,
+	// but two identical row_hash values inside one multi-row statement are worth avoiding.
+	const seenHashes = new Set<string>();
+	const rowsToInsert = allRows.filter(r => {
+		if (seenHashes.has(r.row_hash)) return false;
+		seenHashes.add(r.row_hash);
+		return true;
+	});
+	const dupeCount = allRows.length - rowsToInsert.length;
+	if (dupeCount) console.log(`Skipping ${dupeCount} duplicate row_hash values before insert`);
+
 	const BATCH_SIZE = 100;
-	console.log(`Inserting ${allRows.length} rows into Postgres...`);
+	console.log(`Inserting ${rowsToInsert.length} rows into Postgres...`);
 
-	for (let i = 0; i < allRows.length; i += BATCH_SIZE) {
-		const batch = allRows.slice(i, i + BATCH_SIZE);
-		
-		for (const row of batch) {
-			await query(`
-				INSERT INTO admissions (
-					row_hash, academic_year, university, university_norm, program_name, program_name_norm, 
-					ouac_code, admission_grade, admission_date_raw, admission_date_iso, 
-					admission_month_iso, admission_month_label, admission_year, round_label, round_order,
-					supplemental_required, status_normalized, source_file, imported_at
-				) VALUES (
-					$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19
-				)
-				ON CONFLICT (row_hash) DO NOTHING
-			`, [
-				row.row_hash, row.academic_year, row.university, row.university_norm,
-				row.program_name, row.program_name_norm, row.ouac_code, row.admission_grade,
-				row.admission_date_raw, row.admission_date_iso, row.admission_month_iso,
-				row.admission_month_label, row.admission_year, row.round_label, row.round_order,
-				row.supplemental_required, row.status_normalized, row.source_file, row.imported_at
-			]);
-		}
+	for (let i = 0; i < rowsToInsert.length; i += BATCH_SIZE) {
+		const batch = rowsToInsert.slice(i, i + BATCH_SIZE);
 
-		if ((i + BATCH_SIZE) % 500 === 0 || i + BATCH_SIZE >= allRows.length) {
-			console.log(`  Inserted ${Math.min(i + BATCH_SIZE, allRows.length)}/${allRows.length} rows`);
+		// ($1..$19), ($20..$38), ...
+		const tuples = batch
+			.map((_, r) => `(${COLUMNS.map((_c, c) => `$${r * COLUMNS.length + c + 1}`).join(', ')})`)
+			.join(', ');
+		const params = batch.flatMap(row => COLUMNS.map(c => (row as any)[c] ?? null));
+
+		await query(
+			`INSERT INTO admissions (${COLUMNS.join(', ')})
+			 VALUES ${tuples}
+			 ON CONFLICT (row_hash) DO NOTHING`,
+			params
+		);
+
+		const done = Math.min(i + BATCH_SIZE, rowsToInsert.length);
+		if (done % 500 === 0 || done === rowsToInsert.length) {
+			console.log(`  Inserted ${done}/${rowsToInsert.length} rows`);
 		}
 	}
 

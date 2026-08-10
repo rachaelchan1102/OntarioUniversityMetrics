@@ -2,17 +2,17 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { computeKPIs, computeYoY } from '../../../lib/stats/compute';
-import StatCard from '../../../components/StatCard';
-import ChartCard from '../../../components/ChartCard';
-import AvgByMonthChart from '../../../components/AvgByMonthChart';
-import HistogramChart from '../../../components/HistogramChart';
-import BoxWhiskerChart from '../../../components/BoxWhiskerChart';
-import DataTable from '../../../components/DataTable';
-import EmptyState from '../../../components/EmptyState';
-import YearFilter from '../../../components/YearFilter';
-import SearchBar from '../../../components/SearchBar';
+import StatCard from '../../../components/ui/StatCard';
+import ChartCard from '../../../components/charts/ChartCard';
+import AvgByMonthChart from '../../../components/charts/AvgByMonthChart';
+import HistogramChart from '../../../components/charts/HistogramChart';
+import BoxWhiskerChart from '../../../components/charts/BoxWhiskerChart';
+import DataTable from '../../../components/ui/DataTable';
+import EmptyState from '../../../components/ui/EmptyState';
+import YearFilter from '../../../components/ui/YearFilter';
+import SearchBar from '../../../components/search/SearchBar';
 import Link from 'next/link';
-import ThemeToggle from '../../../components/ThemeToggle';
+import ThemeToggle from '../../../components/theme/ThemeToggle';
 
 export default function ProgramPage() {
   const params = useParams();

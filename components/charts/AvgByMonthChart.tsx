@@ -2,7 +2,7 @@
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, Dot,
 } from 'recharts';
-import { useTheme } from './ThemeProvider';
+import { useTheme } from '../theme/ThemeProvider';
 
 interface Row {
   admission_month_label?: string;
