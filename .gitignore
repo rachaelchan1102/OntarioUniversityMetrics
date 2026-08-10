@@ -5,3 +5,8 @@ node_modules/
 *.log
 data/import_logs/
 tsconfig.tsbuildinfo
+
+# Raw Google Sheets exports — regenerable source, ~4 MB per refresh.
+# data/csv/*.csv is the tracked, derived artifact.
+data/sheet.html
+*Google Drive.html

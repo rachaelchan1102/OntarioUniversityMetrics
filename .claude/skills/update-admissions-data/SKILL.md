@@ -179,12 +179,15 @@ pending", and state which date the site is still showing.
 
 ## Committing
 
-Stage only the data files — not `package-lock.json` (npm install may churn it) or the wrapper
-unless it changed on purpose:
+Stage only the CSV — not `package-lock.json` (npm install may churn it):
 
 ```bash
-git add data/sheet.html data/csv/2025-2026.csv
+git add data/csv/2025-2026.csv
 ```
+
+`data/sheet.html` and the `*Google Drive.html` wrapper are **gitignored**. The raw export is ~4 MB
+per refresh and regenerable from the source sheet, so only the derived CSV is tracked. Don't try
+to `git add -f` it.
 
 If the import was skipped on this machine, put the remaining steps in the commit body so the
 person on the machine-with-credentials knows what to run:

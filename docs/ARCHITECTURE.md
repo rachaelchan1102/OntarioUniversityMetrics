@@ -144,7 +144,8 @@ OntarioUniversityMetrics/
 │   │   ├── 2023-2024.csv
 │   │   ├── 2024-2025.csv
 │   │   └── 2025-2026.csv        # Regenerated from sheet.html
-│   ├── sheet.html               # Raw Google Sheets export (the real ~4 MB one)
+│   ├── sheet.html               # Raw Google Sheets export (~4 MB, gitignored — regenerable
+│   │                            #   source; only the derived CSVs are tracked)
 │   └── import_logs/             # Import summaries (gitignored)
 │       ├── import_summary.json
 │       └── unmatched_ouac.json
