@@ -4,7 +4,7 @@
 // strokes it with var(--stroke) — that makes it theme-aware from one source
 // instead of needing separate light/dark image assets. The ramp fills are
 // intentionally constant across themes, matching the mockup.
-export function LogoMark({ className = 'w-[61px] h-[61px] sm:w-[93px] sm:h-[93px]' }: { className?: string }) {
+export function LogoMark({ className = 'w-[76px] h-[76px] sm:w-[116px] sm:h-[116px]' }: { className?: string }) {
   return (
     <svg viewBox="0 0 88 88" fill="none" className={`${className} shrink-0`} aria-hidden="true">
       <rect x="16" y="52" width="16" height="22" rx="8" fill="#dae8f4" stroke="var(--stroke)" strokeWidth="2.5" />
@@ -37,10 +37,10 @@ export default function Logo({ compact = false }: { compact?: boolean }) {
     <span className="flex items-center gap-4 sm:gap-5">
       <LogoMark />
       <span className="flex flex-col items-start">
-        <span className="text-sm sm:text-[18px] font-medium text-brand tracking-wordmark leading-none mb-1.5 sm:mb-2">
+        <span className="text-base sm:text-[23px] font-medium text-brand tracking-wordmark leading-none mb-1.5 sm:mb-2">
           ONTARIO
         </span>
-        <span className="text-[27px] sm:text-[48px] font-semibold -tracking-[0.02em] leading-[1.05] whitespace-nowrap">
+        <span className="text-[34px] sm:text-[60px] font-semibold -tracking-[0.02em] leading-[1.05] whitespace-nowrap">
           University Metrics
         </span>
       </span>

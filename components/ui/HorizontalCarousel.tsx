@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 interface HorizontalCarouselProps {
   slides: React.ReactNode[];
-  /** Initial slide. The mockup opens on the middle card. */
+  /** Initial slide. */
   initialIndex?: number;
   /** Autoplay interval in ms. Pass 0 to disable. */
   autoPlayMs?: number;
@@ -13,61 +13,73 @@ const GAP = 28;
 const MAX_SLIDE = 640;
 
 /**
- * Sliding track carousel from the /mockups design: one centred card, neighbours
- * dimmed and slightly scaled down, arrows either side, dots below.
+ * Circular carousel.
  *
- * Slide width is measured rather than fixed at the mockup's 640px so it still
- * centres correctly on narrow screens. Slides supply their own background and
- * border — this component only positions them.
+ * Slides are positioned by their *signed distance* from the active one
+ * (-1 centre-left, 0 centre, +1 centre-right) taking the shortest way around
+ * the ring, so there is always a card peeking on both sides and stepping past
+ * the last slide wraps to the first. An earlier version translated a single
+ * linear track, which read as pagination — nothing sat left of slide one and
+ * the arrows dead-ended.
+ *
+ * Because slides are absolutely positioned they're out of flow, so the wrapper
+ * height is measured from the tallest slide.
+ *
+ * With only two slides there's no distinct left neighbour, so one side stays
+ * empty — fine for the three-slide homepage.
  */
 export default function HorizontalCarousel({
   slides,
-  initialIndex,
+  initialIndex = 0,
   autoPlayMs = 5000,
 }: HorizontalCarouselProps) {
   const safeSlides = slides ?? [];
   const count = safeSlides.length;
-  const [index, setIndex] = useState(() =>
-    Math.min(Math.max(initialIndex ?? Math.floor(count / 2), 0), Math.max(count - 1, 0))
-  );
+  const [index, setIndex] = useState(() => Math.min(Math.max(initialIndex, 0), Math.max(count - 1, 0)));
   const [paused, setPaused] = useState(false);
   // Bumped on manual navigation to restart the autoplay timer.
   const [nudge, setNudge] = useState(0);
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const [viewportW, setViewportW] = useState(0);
 
-  // Autoplay wraps around; the arrows stay bounded as in the mockup.
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [viewportW, setViewportW] = useState(0);
+  const [maxH, setMaxH] = useState(0);
+
   useEffect(() => {
     if (!autoPlayMs || paused || count < 2) return;
     const t = setInterval(() => setIndex(i => (i + 1) % count), autoPlayMs);
     return () => clearInterval(t);
   }, [autoPlayMs, paused, count, nudge]);
 
+  // Track viewport width (for slide sizing) and the tallest slide (for height).
   useEffect(() => {
-    const el = viewportRef.current;
-    if (!el) return;
-    const measure = () => setViewportW(el.clientWidth);
+    const measure = () => {
+      if (viewportRef.current) setViewportW(viewportRef.current.clientWidth);
+      const heights = slideRefs.current.map(el => el?.offsetHeight ?? 0);
+      const tallest = Math.max(0, ...heights);
+      if (tallest) setMaxH(tallest);
+    };
     measure();
     const ro = new ResizeObserver(measure);
-    ro.observe(el);
+    if (viewportRef.current) ro.observe(viewportRef.current);
+    slideRefs.current.forEach(el => el && ro.observe(el));
     return () => ro.disconnect();
-  }, []);
+  }, [count]);
 
   if (!count) return null;
 
   const slideW = viewportW ? Math.min(MAX_SLIDE, viewportW - 40) : MAX_SLIDE;
-  const leadIn = Math.max((viewportW - slideW) / 2, 0);
-  const trackX = -(index * (slideW + GAP));
+  const step = slideW + GAP;
 
   const go = (fn: (i: number) => number) => {
     setIndex(fn);
     setNudge(n => n + 1);
   };
-  const prev = () => go(i => Math.max(0, i - 1));
-  const next = () => go(i => Math.min(count - 1, i + 1));
+  const prev = () => go(i => (i - 1 + count) % count);
+  const next = () => go(i => (i + 1) % count);
 
   const arrowBase =
-    'absolute top-1/2 -translate-y-1/2 z-10 w-11 h-11 sm:w-[42px] sm:h-[42px] rounded-full border-2 border-stroke bg-card text-ink flex items-center justify-center transition-colors hover:bg-soft disabled:opacity-35 disabled:cursor-default';
+    'absolute top-1/2 -translate-y-1/2 z-10 w-11 h-11 sm:w-[42px] sm:h-[42px] rounded-full border-2 border-stroke bg-card text-ink flex items-center justify-center transition-colors hover:bg-soft';
 
   return (
     <section
@@ -78,34 +90,43 @@ export default function HorizontalCarousel({
       onBlurCapture={() => setPaused(false)}
     >
       <div ref={viewportRef} className="overflow-hidden py-3.5">
-        <div
-          className="flex transition-transform duration-[380ms] ease-[cubic-bezier(.4,0,.2,1)]"
-          style={{ gap: `${GAP}px`, paddingLeft: `${leadIn}px`, transform: `translateX(${trackX}px)` }}
-        >
-          {safeSlides.map((slide, i) => (
-            <div
-              key={i}
-              aria-hidden={i !== index}
-              className="shrink-0 box-border transition-[opacity,transform] duration-300"
-              style={{
-                flex: `0 0 ${slideW}px`,
-                opacity: i === index ? 1 : 0.4,
-                transform: `scale(${i === index ? 1 : 0.94})`,
-                pointerEvents: i === index ? 'auto' : 'none',
-              }}
-            >
-              {slide}
-            </div>
-          ))}
+        <div className="relative" style={{ height: maxH || undefined }}>
+          {safeSlides.map((slide, i) => {
+            // Shortest signed distance around the ring.
+            const rel = (i - index + count) % count;
+            const offset = rel === 0 ? 0 : rel <= count / 2 ? rel : rel - count;
+            const isCentre = offset === 0;
+            const adjacent = Math.abs(offset) <= 1;
+
+            return (
+              <div
+                key={i}
+                ref={el => {
+                  slideRefs.current[i] = el;
+                }}
+                aria-hidden={!isCentre}
+                className="absolute top-0 left-1/2 box-border transition-[transform,opacity] duration-[420ms] ease-[cubic-bezier(.4,0,.2,1)]"
+                style={{
+                  width: slideW,
+                  transform: `translateX(calc(-50% + ${offset * step}px)) scale(${isCentre ? 1 : 0.94})`,
+                  opacity: isCentre ? 1 : adjacent ? 0.4 : 0,
+                  pointerEvents: isCentre ? 'auto' : 'none',
+                  zIndex: isCentre ? 2 : 1,
+                }}
+              >
+                {slide}
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      <button onClick={prev} disabled={index === 0} aria-label="Previous" className={`${arrowBase} left-0 sm:left-2`}>
+      <button onClick={prev} aria-label="Previous" className={`${arrowBase} left-0 sm:left-2`}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M15 18l-6-6 6-6" />
         </svg>
       </button>
-      <button onClick={next} disabled={index === count - 1} aria-label="Next" className={`${arrowBase} right-0 sm:right-2`}>
+      <button onClick={next} aria-label="Next" className={`${arrowBase} right-0 sm:right-2`}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M9 6l6 6-6 6" />
         </svg>

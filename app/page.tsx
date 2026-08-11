@@ -128,12 +128,12 @@ export default function HomePage() {
       </div>
 
       {/* Brand header */}
-      <header className="max-w-[900px] mx-auto mt-3.5 flex flex-col items-center text-center gap-4 sm:gap-[14px]">
+      <header className="max-w-[940px] mx-auto mt-3.5 flex flex-col items-center text-center gap-4 sm:gap-[14px]">
         <h1>
           <Logo />
           <span className="sr-only">Ontario University Metrics</span>
         </h1>
-        <p className="max-w-[620px] text-[12px] sm:text-[14px] leading-relaxed text-muted text-pretty">
+        <p className="max-w-[880px] text-[15px] sm:text-[18px] leading-relaxed text-muted text-pretty">
           Explore historical admission trends, grade distributions, grade inflation, and comparison
           against university published averages.
         </p>
