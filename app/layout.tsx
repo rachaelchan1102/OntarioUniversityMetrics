@@ -7,7 +7,7 @@ import ThemeToggle from '../components/theme/ThemeToggle';
 export const metadata: Metadata = {
   title: 'Ontario University Metrics',
   description: 'Ontario university admissions analytics',
-  icons: { icon: '/ontariouniversitymetriclogo.png' },
+  icons: { icon: '/oum-logo-2b-40px@4x.png' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

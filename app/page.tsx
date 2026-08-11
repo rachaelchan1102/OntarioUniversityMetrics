@@ -110,7 +110,16 @@ export default function HomePage() {
         {/* Page title */}
         <div>
           <h1 className="text-4xl sm:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight mb-2 text-center">
-            Ontario University Admissions<br />
+            {/* Logo lockup carries the wordmark, so it stands in for the heading text.
+                alt is what screen readers announce as the h1. */}
+            <Image
+              src="/oum-lockup-2b-trim.png"
+              alt="Ontario University Metrics"
+              width={1546}
+              height={299}
+              priority
+              className="w-full max-w-xs sm:max-w-xl h-auto mx-auto dark:invert"
+            />
             <span className="block text-4xl sm:text-6xl font-extrabold bg-gradient-to-r from-teal-400 to-blue-500 text-transparent bg-clip-text drop-shadow-sm mt-2">Data Explorer</span>
           </h1>
           <p className="text-slate-500 dark:text-slate-300 text-lg sm:text-xl mt-4 text-center max-w-3xl mx-auto">Explore historical admission trends, grade distributions, grade inflation, and comparison against university published averages.</p>
