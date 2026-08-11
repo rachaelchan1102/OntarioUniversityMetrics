@@ -1,35 +1,54 @@
-import type { ReactNode } from 'react';
+import { ReactNode } from 'react';
 
-type CardColor = 'blue' | 'mint' | 'purple' | 'pink';
-
-const P: Record<CardColor, { iconBg: string; iconText: string; val: string }> = {
-  blue:   { iconBg: 'bg-blue-100 dark:bg-blue-900/60',    iconText: 'text-blue-500 dark:text-blue-400',    val: 'text-blue-700 dark:text-blue-300' },
-  mint:   { iconBg: 'bg-teal-100 dark:bg-teal-900/60',    iconText: 'text-teal-500 dark:text-teal-400',    val: 'text-teal-700 dark:text-teal-300' },
-  purple: { iconBg: 'bg-violet-100 dark:bg-violet-900/60', iconText: 'text-violet-500 dark:text-violet-400', val: 'text-violet-700 dark:text-violet-300' },
-  pink:   { iconBg: 'bg-pink-100 dark:bg-pink-900/60',    iconText: 'text-pink-500 dark:text-pink-400',    val: 'text-pink-700 dark:text-pink-300' },
-};
-
-interface StatCardProps {
+/**
+ * Stat card from the /mockups design: a soft-filled glyph badge with a heavy
+ * stroke outline, a small caps-ish label, a large brand-coloured value, and a
+ * muted note.
+ *
+ * `layout="inline"` puts the badge beside the label (homepage KPI row);
+ * `layout="stacked"` puts it above (program page metric row).
+ */
+export default function StatCard({
+  label,
+  value,
+  sub,
+  glyph,
+  layout = 'inline',
+  className = '',
+}: {
   label: string;
-  value: string | number;
+  value: ReactNode;
   sub?: string;
-  icon?: ReactNode;
-  color?: CardColor;
+  /** Short text or icon inside the badge, e.g. "Ad", "σ", "↗". */
+  glyph?: ReactNode;
+  layout?: 'inline' | 'stacked';
   className?: string;
-}
+}) {
+  const badge = glyph ? (
+    <span className="w-[30px] h-[30px] shrink-0 rounded-badge bg-soft border-2 border-stroke flex items-center justify-center text-[12px] font-bold text-brand">
+      {glyph}
+    </span>
+  ) : null;
 
-export default function StatCard({ label, value, sub, icon, color = 'blue', className = '' }: StatCardProps) {
-  const p = P[color];
+  if (layout === 'stacked') {
+    return (
+      <div className={`bg-card border-2 border-line rounded-card p-6 sm:p-7 ${className}`}>
+        {badge}
+        <div className="text-xs font-semibold tracking-label text-muted mt-4">{label}</div>
+        <div className="text-[22px] sm:text-[27px] font-bold text-brand leading-tight mt-1">{value}</div>
+        {sub && <div className="text-sm text-muted">{sub}</div>}
+      </div>
+    );
+  }
+
   return (
-    <div className={`rounded-2xl p-5 bg-white dark:bg-[#1e2a3a] border border-slate-200 dark:border-slate-700 shadow-sm ${className}`}>
-      {icon && (
-        <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-3 ${p.iconBg}`}>
-          <span className={p.iconText}>{icon}</span>
-        </div>
-      )}
-      <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 dark:text-slate-200">{label}</p>
-      <p className={`text-2xl font-bold mt-1 leading-tight ${p.val}`}>{value}</p>
-      {sub && <p className="text-sm mt-1 text-slate-500 dark:text-slate-300">{sub}</p>}
+    <div className={`bg-card border-2 border-line rounded-panel p-5 sm:p-[18px] ${className}`}>
+      <div className="flex items-center gap-3 mb-3.5">
+        {badge}
+        <div className="text-sm font-medium text-muted">{label}</div>
+      </div>
+      <div className="text-[21px] sm:text-[26px] font-bold text-brand leading-tight">{value}</div>
+      {sub && <div className="text-[12px] text-muted mt-1">{sub}</div>}
     </div>
   );
 }

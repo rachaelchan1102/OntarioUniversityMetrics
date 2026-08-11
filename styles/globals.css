@@ -1,14 +1,73 @@
+/* Font import must precede the Tailwind layers to be a valid @import. */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+/* ---------------------------------------------------------------------------
+   Design tokens, taken from the mockups in /mockups.
+   The mockups drive both themes off one set of CSS variables rather than
+   duplicating colours per rule, so we do the same: `.dark` on <html> reassigns
+   the vars and every `bg-card` / `border-line` / `text-ink` utility follows.
+   Tailwind maps these to semantic colour names in tailwind.config.js.
+   --------------------------------------------------------------------------- */
+:root {
+  --page: #eef2f7;   /* page background */
+  --card: #ffffff;   /* card / panel surface */
+  --ink: #22303f;    /* primary text */
+  --muted: #6b7a8c;  /* secondary text */
+  --line: #dbe4ee;   /* card borders, gridlines */
+  --soft: #dae8f4;   /* tinted fills, badges */
+  --blue: #3f6188;   /* brand accent, big numbers */
+  --stroke: #2f2a24; /* heavy outline on "sticker" elements */
+  --thead: #f4f7fb;  /* table header row */
+}
 
-html, body {
+.dark {
+  --page: #12171e;
+  --card: #1a212a;
+  --ink: #eef3f8;
+  --muted: #93a1b1;
+  --line: #2a3441;
+  --soft: #24303d;
+  --blue: #9dbdd8;
+  --stroke: #e9edf2;
+  --thead: #212a35;
+}
+
+/* Categorical ramp for bars / series. Deliberately theme-independent — the
+   mockup keeps these constant across light and dark. */
+:root {
+  --ramp-1: #f0c987;
+  --ramp-2: #3f6188;
+  --ramp-3: #6f95b8;
+  --ramp-4: #9dbdd8;
+  --ramp-5: #c3d8ea;
+}
+
+html,
+body {
   font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
 }
 
-h1, h2 {
+body {
+  background: var(--page);
+  color: var(--ink);
+}
+
+a {
+  color: var(--blue);
+  text-decoration: none;
+}
+
+input::placeholder {
+  color: var(--muted);
+}
+
+/* The mockup's headings are 600, not the browser-default 700. */
+h1,
+h2 {
   font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
-  font-weight: 700;
+  font-weight: 600;
 }

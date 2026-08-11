@@ -1,5 +1,5 @@
 'use client';
-import { useTheme } from '../theme/ThemeProvider';
+import { RAMP, STROKE } from './chartTheme';
 
 interface BoxWhiskerProps {
   min: number;
@@ -10,91 +10,73 @@ interface BoxWhiskerProps {
   max: number;
 }
 
-const VW = 500;
-const PAD_X = 56;
-const MID_Y = 44;
-const BOX_HALF = 18;
-const VH = 88;
+// Geometry from the mockup's IQR panel: a 1000x120 viewBox with the whisker
+// spanning x=131 to x=885.
+const VB_W = 1000;
+const VB_H = 120;
+const LEFT = 131;
+const RIGHT = 885;
+const MID_Y = 60;
 
-function sx(v: number, domMin: number, domMax: number) {
-  if (domMax === domMin) return VW / 2;
-  return PAD_X + ((v - domMin) / (domMax - domMin)) * (VW - 2 * PAD_X);
-}
-
+/**
+ * Interquartile range plot from the /mockups design: whisker line with end
+ * caps, a soft-filled IQR box, a brand median rule, an amber mean dot, then a
+ * five-cell quartile readout and a legend.
+ */
 export default function BoxWhiskerChart({ min, q1, median, mean, q3, max }: BoxWhiskerProps) {
-  const { dark } = useTheme();
+  // Guard the degenerate single-value case so nothing divides by zero.
+  const span = max - min;
+  const x = (v: number) => (span === 0 ? (LEFT + RIGHT) / 2 : LEFT + ((v - min) / span) * (RIGHT - LEFT));
 
-  const buf = Math.max(0.5, (max - min) * 0.12);
-  const domMin = min - buf;
-  const domMax = max + buf;
-  const x = (v: number) => sx(v, domMin, domMax);
+  const boxX = x(q1);
+  const boxW = Math.max(x(q3) - boxX, 4);
 
-  const c = {
-    whisker:    dark ? '#475569' : '#94a3b8',
-    boxFill:    dark ? 'rgba(20,184,166,0.15)' : 'rgba(20,184,166,0.12)',
-    boxStroke:  dark ? '#2dd4bf' : '#0d9488',
-    medianLine: dark ? '#2dd4bf' : '#0f766e',
-    meanDot:    '#f472b6',
-  };
+  const cells: { value: number; label: string }[] = [
+    { value: min, label: 'Min' },
+    { value: q1, label: 'Q1' },
+    { value: median, label: 'Median' },
+    { value: q3, label: 'Q3' },
+    { value: max, label: 'Max' },
+  ];
 
   return (
-    <div className="w-full select-none space-y-2">
-      {/* Pure graphic — no text labels in SVG */}
-      <svg viewBox={`0 0 ${VW} ${VH}`} className="w-full" style={{ height: VH }}>
-        {/* Whisker line */}
-        <line x1={x(min)} y1={MID_Y} x2={x(max)} y2={MID_Y}
-          stroke={c.whisker} strokeWidth={2} strokeLinecap="round" />
-        {/* End caps */}
-        <line x1={x(min)} y1={MID_Y - BOX_HALF + 6} x2={x(min)} y2={MID_Y + BOX_HALF - 6}
-          stroke={c.whisker} strokeWidth={2} strokeLinecap="round" />
-        <line x1={x(max)} y1={MID_Y - BOX_HALF + 6} x2={x(max)} y2={MID_Y + BOX_HALF - 6}
-          stroke={c.whisker} strokeWidth={2} strokeLinecap="round" />
+    <div>
+      <svg viewBox={`0 0 ${VB_W} ${VB_H}`} width="100%" height="108" fill="none" className="mt-3">
+        {/* whisker */}
+        <line x1={x(min)} y1={MID_Y} x2={x(max)} y2={MID_Y} stroke="var(--muted)" strokeWidth="3" strokeLinecap="round" />
+        <line x1={x(min)} y1={MID_Y - 20} x2={x(min)} y2={MID_Y + 20} stroke={STROKE} strokeWidth="3" strokeLinecap="round" />
+        <line x1={x(max)} y1={MID_Y - 20} x2={x(max)} y2={MID_Y + 20} stroke={STROKE} strokeWidth="3" strokeLinecap="round" />
         {/* IQR box */}
-        <rect x={x(q1)} y={MID_Y - BOX_HALF}
-          width={Math.max(4, x(q3) - x(q1))} height={BOX_HALF * 2}
-          fill={c.boxFill} stroke={c.boxStroke} strokeWidth={1.5} rx={4} />
-        {/* Median line */}
-        <line x1={x(median)} y1={MID_Y - BOX_HALF} x2={x(median)} y2={MID_Y + BOX_HALF}
-          stroke={c.medianLine} strokeWidth={3} strokeLinecap="round" />
-        {/* Mean diamond */}
-        <polygon
-          points={`${x(mean)},${MID_Y - 6} ${x(mean) + 6},${MID_Y} ${x(mean)},${MID_Y + 6} ${x(mean) - 6},${MID_Y}`}
-          fill={c.meanDot} />
+        <rect x={boxX} y={MID_Y - 30} width={boxW} height="60" rx="14" fill="var(--soft)" stroke={STROKE} strokeWidth="3" />
+        {/* median */}
+        <line x1={x(median)} y1={MID_Y - 30} x2={x(median)} y2={MID_Y + 30} stroke="#3f6188" strokeWidth="5" strokeLinecap="round" />
+        {/* mean */}
+        <circle cx={x(mean)} cy={MID_Y} r="8" fill={RAMP[0]} stroke={STROKE} strokeWidth="3" />
       </svg>
 
-      {/* Stats row — always legible, no positioning math */}
-      <div className="grid grid-cols-5 divide-x divide-slate-200 dark:divide-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
-        {[
-          { label: 'Min',    val: min,    key: false },
-          { label: 'Q1',     val: q1,     key: true  },
-          { label: 'Median', val: median, key: true  },
-          { label: 'Q3',     val: q3,     key: true  },
-          { label: 'Max',    val: max,    key: false },
-        ].map(({ label, val, key }) => (
-          <div key={label} className="flex flex-col items-center py-2.5 px-1 bg-white dark:bg-[#1e2a3a]">
-            <span className={`text-sm font-bold tabular-nums ${key ? 'text-teal-600 dark:text-teal-400' : 'text-slate-700 dark:text-slate-200'}`}>
-              {val.toFixed(1)}%
-            </span>
-            <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-none">{label}</span>
+      <div className="grid grid-cols-5 border-2 border-line rounded-inner overflow-hidden mt-[14px]">
+        {cells.map((c, i) => (
+          <div
+            key={c.label}
+            className={`py-4 px-2 text-center ${i < cells.length - 1 ? 'border-r-2 border-line' : ''}`}
+          >
+            <div className="text-sm sm:text-[15px] font-bold text-brand">{c.value.toFixed(1)}%</div>
+            <div className="text-[12px] sm:text-[13px] text-muted mt-0.5">{c.label}</div>
           </div>
         ))}
       </div>
 
-      {/* Legend */}
-      <div className="flex items-center justify-center gap-5 pt-0.5 text-xs text-slate-500 dark:text-slate-400">
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 rounded-sm shrink-0"
-            style={{ background: c.boxFill, border: `1.5px solid ${c.boxStroke}` }} />
+      <div className="flex flex-wrap justify-center gap-x-7 gap-y-2 mt-[14px] text-sm text-muted">
+        <span className="flex items-center gap-2">
+          <span className="w-4 h-4 rounded-[10px] bg-soft border-2 border-stroke" />
           IQR (Q1–Q3)
         </span>
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block w-4 shrink-0 rounded"
-            style={{ height: 3, background: c.medianLine }} />
+        <span className="flex items-center gap-2">
+          <span className="w-5 h-[10px] rounded-[10px] bg-[#3f6188]" />
           Median
         </span>
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block w-2.5 h-2.5 shrink-0 rotate-45"
-            style={{ background: c.meanDot }} />
+        <span className="flex items-center gap-2">
+          <span className="w-3.5 h-3.5 rounded-full bg-[#f0c987] border-2 border-stroke" />
           Mean
         </span>
       </div>

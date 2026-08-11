@@ -1,13 +1,8 @@
 'use client';
 import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts';
+import { LINE_COLOR, RAMP, STROKE, axisProps, gridProps, tooltipStyle } from './chartTheme';
 
 interface YearPoint {
   academic_year: string;
@@ -18,15 +13,15 @@ interface YearPoint {
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white dark:bg-[#1e2a3a] border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg px-3 py-2 text-xs">
-      <p className="font-semibold text-slate-700 dark:text-slate-100 mb-1">{label}</p>
-      <p className="text-teal-600 dark:text-teal-400 font-bold">{Number(payload[0].value).toFixed(1)}% avg grade</p>
-      <p className="text-slate-400 dark:text-slate-300">{Number(payload[0].payload.n).toLocaleString()} records</p>
+    <div style={tooltipStyle} className="px-3.5 py-2.5">
+      <p className="font-semibold mb-0.5">{label}</p>
+      <p className="text-brand font-bold">{Number(payload[0].value).toFixed(1)}% avg grade</p>
+      <p className="text-muted">{Number(payload[0].payload.n).toLocaleString()} records</p>
     </div>
   );
 }
 
-export default function TrendLineChart({ data, height = '100%' }: { data: YearPoint[], height?: number | string }) {
+export default function TrendLineChart({ data, height = '100%' }: { data: YearPoint[]; height?: number | string }) {
   const formatted = data.map(d => ({
     ...d,
     avg_grade: Number(d.avg_grade),
@@ -40,39 +35,27 @@ export default function TrendLineChart({ data, height = '100%' }: { data: YearPo
 
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <AreaChart data={formatted} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
-        <defs>
-          <linearGradient id="gradeGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#0d9488" stopOpacity={0.25} />
-            <stop offset="95%" stopColor="#0d9488" stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.07} />
-        <XAxis
-          dataKey="label"
-          tick={{ fontSize: 13, fill: 'currentColor' }}
-          axisLine={false}
-          tickLine={false}
-        />
+      <AreaChart data={formatted} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
+        <CartesianGrid {...gridProps} />
+        <XAxis dataKey="label" {...axisProps} />
         <YAxis
           domain={[minVal, maxVal]}
           ticks={Array.from({ length: maxVal - minVal + 1 }, (_, i) => minVal + i)}
-          tick={{ fontSize: 13, fill: 'currentColor' }}
-          axisLine={false}
-          tickLine={false}
           tickFormatter={(v: number) => `${v}%`}
-          width={42}
+          width={44}
+          {...axisProps}
         />
         <Tooltip content={<CustomTooltip />} />
         <Area
           type="monotone"
           dataKey="avg_grade"
-          stroke="#14b8a6"
-          strokeWidth={3}
-          fillOpacity={1}
-          fill="url(#gradeGradient)"
-          activeDot={{ r: 6 }}
-          dot={{ r: 4, fill: '#14b8a6', stroke: 'white', strokeWidth: 2 }}
+          stroke={LINE_COLOR}
+          strokeWidth={4}
+          strokeLinecap="round"
+          fill="var(--soft)"
+          fillOpacity={0.55}
+          activeDot={{ r: 7, fill: RAMP[0], stroke: STROKE, strokeWidth: 2.5 }}
+          dot={{ r: 5.5, fill: 'var(--soft)', stroke: STROKE, strokeWidth: 2.5 }}
         />
       </AreaChart>
     </ResponsiveContainer>

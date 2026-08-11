@@ -11,13 +11,37 @@ interface Result {
   n_total: number;
 }
 
-export default function SearchBar({ autoFocus = false }: { autoFocus?: boolean }) {
+/**
+ * Pill search field from the /mockups design.
+ *
+ * `size="hero"` is the tall 56px version inside the homepage "Explore Programs"
+ * card; `size="bar"` is the 48px version in the program page header.
+ * `fill` lets the homepage suggestion chips populate the query.
+ */
+export default function SearchBar({
+  autoFocus = false,
+  size = 'bar',
+  fill,
+}: {
+  autoFocus?: boolean;
+  size?: 'hero' | 'bar';
+  fill?: string;
+}) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Chip clicks push a value in from the parent.
+  useEffect(() => {
+    if (fill) {
+      setQuery(fill);
+      inputRef.current?.focus();
+    }
+  }, [fill]);
 
   useEffect(() => {
     if (!query.trim()) {
@@ -55,24 +79,44 @@ export default function SearchBar({ autoFocus = false }: { autoFocus?: boolean }
     router.push(`/program/${slug}`);
   }
 
+  const hero = size === 'hero';
+
   return (
     <div ref={containerRef} className="relative w-full">
-      <div className="flex items-center bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 gap-2 focus-within:border-teal-400 dark:focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-500/20 transition">
-        <svg className="w-4 h-4 text-gray-400 dark:text-slate-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      <div
+        className={`flex items-center gap-3 border-2 border-stroke rounded-full ${
+          hero ? 'h-14 px-5 bg-page' : 'h-12 px-4 sm:px-[14px] bg-card'
+        }`}
+      >
+        <svg
+          width={hero ? 20 : 18}
+          height={hero ? 20 : 18}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="var(--muted)"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          className="shrink-0"
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="M20 20l-3.5-3.5" />
         </svg>
         <input
+          ref={inputRef}
           autoFocus={autoFocus}
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search programs, universities, OUAC codes…"
-          className="flex-1 outline-none text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-300 bg-transparent"
+          placeholder="Search programs, universities, OUAC codes..."
+          className={`flex-1 min-w-0 border-none outline-none bg-transparent text-ink placeholder:text-muted ${
+            hero ? 'text-sm' : 'text-[12px]'
+          }`}
         />
         {query && (
           <button
             onClick={() => { setQuery(''); setResults([]); setOpen(false); }}
-            className="text-gray-400 hover:text-gray-600 dark:text-slate-300 dark:hover:text-white"
+            aria-label="Clear search"
+            className="text-muted hover:text-ink shrink-0"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -80,13 +124,7 @@ export default function SearchBar({ autoFocus = false }: { autoFocus?: boolean }
           </button>
         )}
       </div>
-      {open && (
-        <SearchResultsDropdown
-          results={results}
-          onSelect={handleSelect}
-          loading={loading}
-        />
-      )}
+      {open && <SearchResultsDropdown results={results} onSelect={handleSelect} loading={loading} />}
     </div>
   );
 }

@@ -1,11 +1,13 @@
 'use client';
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import SearchBar from '../components/search/SearchBar';
-import ThemeToggle from '../components/theme/ThemeToggle';
 import TrendLineChart from '../components/charts/TrendLineChart';
 import HorizontalCarousel from '../components/ui/HorizontalCarousel';
 import NotesDropdown from '../components/ui/NotesDropdown';
+import StatCard from '../components/ui/StatCard';
+import Logo from '../components/ui/Logo';
+import ThemeToggle from '../components/theme/ThemeToggle';
+import { RAMP } from '../components/charts/chartTheme';
 import { displayUniversity } from '../lib/format/universityNames';
 
 interface YearPoint {
@@ -32,45 +34,62 @@ interface Stats {
   last_updated: string | null;
 }
 
-const KPICOLORS = {
-  blue:   { icon: 'bg-blue-100 dark:bg-blue-900/60',    iconText: 'text-blue-500 dark:text-blue-400',   val: 'text-blue-700 dark:text-blue-300' },
-  mint:   { icon: 'bg-teal-100 dark:bg-teal-900/60',    iconText: 'text-teal-500 dark:text-teal-400',   val: 'text-teal-700 dark:text-teal-300' },
-  purple: { icon: 'bg-violet-100 dark:bg-violet-900/60', iconText: 'text-violet-500 dark:text-violet-400', val: 'text-violet-700 dark:text-violet-300' },
-  pink:   { icon: 'bg-pink-100 dark:bg-pink-900/60',    iconText: 'text-pink-500 dark:text-pink-400',   val: 'text-pink-700 dark:text-pink-300' },
-} as const;
+const SUGGESTIONS = ['Computer Science', 'Waterloo', 'WCS'];
 
-// University display names come from lib/format/universityNames (single source of truth).
-const titleCase = displayUniversity;
-
-function KPICard({
-  icon, label, value, sub, color = 'blue',
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  sub?: string;
-  color?: keyof typeof KPICOLORS;
+/** Ranked bar row used by both Top 5 slides. */
+function RankRow({ rank, name, value, width, color }: {
+  rank: number; name: string; value: string; width: string; color: string;
 }) {
-  const c = KPICOLORS[color];
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e2a3a] p-5 flex items-start gap-4 shadow-sm">
-      <div className={`mt-0.5 flex items-center justify-center w-9 h-9 rounded-xl shrink-0 ${c.icon}`}>
-        <span className={c.iconText}>{icon}</span>
+    <li className="flex flex-col gap-2">
+      <div className="flex items-baseline gap-2.5">
+        <span className="text-[12px] font-semibold text-muted">#{rank}</span>
+        <span className="text-[12px] sm:text-sm font-medium truncate">{name}</span>
+        <span className="ml-auto text-[12px] sm:text-sm font-semibold shrink-0">{value}</span>
       </div>
-      <div className="min-w-0">
-        <p className="text-xs font-medium mb-0.5 text-slate-500 dark:text-slate-200">{label}</p>
-        <p className={`text-2xl font-bold leading-tight ${c.val}`}>{value}</p>
-        {sub && <p className="text-xs mt-0.5 text-slate-400 dark:text-slate-300">{sub}</p>}
+      <div className="h-3.5 rounded-full bg-soft border-2 border-stroke overflow-hidden">
+        <div
+          className="h-full rounded-full border-r-2 border-stroke"
+          style={{ width, background: color }}
+        />
       </div>
+    </li>
+  );
+}
+
+/** Scale bar widths so the smallest value still reads as a bar, per the mockup. */
+function toRows(data: UniversityPoint[]) {
+  const values = data.map(d => Number(d.avg_grade));
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  return data.map((d, i) => {
+    const v = Number(d.avg_grade);
+    return {
+      rank: i + 1,
+      name: displayUniversity(d.university),
+      value: `${v.toFixed(1)}%`,
+      color: RAMP[i % RAMP.length],
+      width: `${(30 + (70 * (v - min + 0.6)) / (max - min + 0.6)).toFixed(1)}%`,
+    };
+  });
+}
+
+function TopFiveCard({ title, rows }: { title: string; rows: ReturnType<typeof toRows> }) {
+  return (
+    <div className="h-full bg-card border-2 border-line rounded-card p-6 sm:px-8 sm:py-[24px]">
+      <h2 className="text-base sm:text-lg font-semibold mb-5 sm:mb-[18px]">{title}</h2>
+      <ul className="flex flex-col gap-4 sm:gap-[14px]">
+        {rows.map(r => <RankRow key={r.name} {...r} />)}
+      </ul>
     </div>
   );
 }
 
 export default function HomePage() {
   const [stats, setStats] = useState<Stats | null>(null);
-  const [trend, setTrend] = useState<number | null>(null);
   const [yearRange, setYearRange] = useState<string | null>(null);
   const [latestAvg, setLatestAvg] = useState<YearPoint | null>(null);
+  const [fill, setFill] = useState<string | undefined>();
 
   useEffect(() => {
     async function fetchStats() {
@@ -79,200 +98,120 @@ export default function HomePage() {
         let data: Stats | null = null;
         try {
           data = await res.json();
-        } catch (e) {
+        } catch {
           data = null;
         }
         if (data && data.yearly_averages && data.yearly_averages.length > 0) {
           setStats(data);
           setLatestAvg(data.yearly_averages[data.yearly_averages.length - 1]);
-          // Fix: Show only the first and last year, e.g. 2022-2026
           const startYear = data.min_year?.split('-')[0];
           const endYear = data.max_year?.split('-')[1];
-          if (startYear && endYear) setYearRange(`${startYear}-${endYear}`);
-          if (data.yearly_averages.length > 1) {
-            const prev = Number(data.yearly_averages[data.yearly_averages.length - 2].avg_grade);
-            const curr = Number(data.yearly_averages[data.yearly_averages.length - 1].avg_grade);
-            setTrend(Number((curr - prev).toFixed(1)));
-          }
+          if (startYear && endYear) setYearRange(`${startYear}–${endYear}`);
         } else {
           setStats(null);
         }
-      } catch (err) {
+      } catch {
         setStats(null);
       }
     }
     fetchStats();
   }, []);
 
+  const uniAverages = stats?.university_averages ?? [];
+  const topHigh = uniAverages.length ? toRows(uniAverages.slice(0, 5)) : [];
+  const topLow = uniAverages.length ? toRows([...uniAverages].reverse().slice(0, 5)) : [];
+
   return (
-    <div>
-      <main className="max-w-6xl mx-auto px-5 sm:px-10 py-10 space-y-6">
-        {/* Page title */}
-        <div>
-          <h1 className="text-4xl sm:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight mb-2 text-center">
-            {/* Logo lockup carries the wordmark, so it stands in for the heading text.
-                alt is what screen readers announce as the h1. */}
-            <Image
-              src="/oum-lockup-2b-trim.png"
-              alt="Ontario University Metrics"
-              width={1546}
-              height={299}
-              priority
-              className="w-full max-w-xs sm:max-w-xl h-auto mx-auto dark:invert"
-            />
-            <span className="block text-4xl sm:text-6xl font-extrabold bg-gradient-to-r from-teal-400 to-blue-500 text-transparent bg-clip-text drop-shadow-sm mt-2">Data Explorer</span>
-          </h1>
-          <p className="text-slate-500 dark:text-slate-300 text-lg sm:text-xl mt-4 text-center max-w-3xl mx-auto">Explore historical admission trends, grade distributions, grade inflation, and comparison against university published averages.</p>
-        </div>
+    <div className="min-h-screen px-6 pb-20">
+      <div className="max-w-shell mx-auto flex justify-end pt-[18px]">
+        <ThemeToggle />
+      </div>
 
+      {/* Brand header */}
+      <header className="max-w-[900px] mx-auto mt-3.5 flex flex-col items-center text-center gap-4 sm:gap-[14px]">
+        <h1>
+          <Logo />
+          <span className="sr-only">Ontario University Metrics</span>
+        </h1>
+        <p className="max-w-[620px] text-[12px] sm:text-[14px] leading-relaxed text-muted text-pretty">
+          Explore historical admission trends, grade distributions, grade inflation, and comparison
+          against university published averages.
+        </p>
+      </header>
 
-        {/* Chart + Top 5 carousel */}
-        {stats?.university_averages?.length ? (
-          <div className="w-full flex justify-center my-8 px-2 sm:px-0 max-w-xs sm:max-w-4xl mx-auto">
-            <HorizontalCarousel
-              slides={[
-                // Slide 1: Chart
-                <div key="chart" className="px-2 pb-4 w-full h-full flex flex-col bg-white dark:bg-[#1e2a3a] border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm">
-                  <div className="px-5 pt-5 pb-2">
-                    <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Average Admission Grade by Year</h2>
-                    <p className="text-base text-slate-400 dark:text-slate-300 mt-1">Across all programs & universities</p>
-                    {stats && latestAvg && (
-                      <span className="inline-flex text-base font-semibold text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 px-3 py-1 rounded-full border border-teal-200 dark:border-teal-800 whitespace-nowrap mt-2 max-w-fit">
-                        Latest: {Number(latestAvg.avg_grade).toFixed(1)}%
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex-1 min-h-[260px] pl-2 sm:pl-4">
-                    <TrendLineChart data={stats.yearly_averages} height="100%" />
-                  </div>
-                </div>,
-                // Slide 2: Top 5 Highest
-                <div key="highest" className="p-7 h-full bg-white dark:bg-[#1e2a3a] border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm">
-                  <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-6 text-center">Top 5 Universities by Highest Average Admission Grade</h2>
-                  <ul className="space-y-6">
-                    {(() => {
-                      const top5 = stats.university_averages.slice(0, 5);
-                      const max = Math.max(...top5.map((u: UniversityPoint) => Number(u.avg_grade)));
-                      return top5.map((u: UniversityPoint, i: number) => (
-                        <li key={u.university}>
-                          <div className="flex items-center justify-between text-sm sm:text-base">
-                            <span className="text-slate-600 dark:text-slate-300 font-semibold truncate max-w-[70%]">
-                              <span className="text-slate-400 dark:text-slate-300 mr-2">#{i + 1}</span>{titleCase(u.university)}
-                            </span>
-                            <span className="font-bold text-slate-700 dark:text-slate-100 shrink-0 ml-4">{Number(u.avg_grade).toFixed(1)}%</span>
-                          </div>
-                          <div className="mt-1 px-2">
-                            <div className="relative h-2 w-full rounded-full bg-slate-100 overflow-hidden">
-                              <div
-                                className={`absolute left-0 top-0 h-2 rounded-full ${[
-                                  'bg-gradient-to-r from-teal-500 to-teal-300',
-                                  'bg-gradient-to-r from-blue-500 to-blue-300',
-                                  'bg-gradient-to-r from-violet-500 to-violet-300',
-                                  'bg-gradient-to-r from-pink-500 to-pink-300',
-                                  'bg-gradient-to-r from-amber-500 to-amber-300',
-                                ][i]}`}
-                                style={{ width: `${parseFloat(u.avg_grade.toString())}%`, minWidth: '10%' }}
-                              />
-                            </div>
-                          </div>
-                        </li>
-                      ));
-                    })()}
-                  </ul>
-                </div>,
-                // Slide 3: Top 5 Lowest
-                <div key="lowest" className="p-7 h-full bg-white dark:bg-[#1e2a3a] border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm">
-                  <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-6 text-center">Top 5 Universities by Lowest Average Admission Grade</h2>
-                  <ul className="space-y-6">
-                    {(() => {
-                      const bottom5 = stats.university_averages.slice(-5).reverse();
-                      const max = Math.max(...bottom5.map((u: UniversityPoint) => Number(u.avg_grade)));
-                      return bottom5.map((u: UniversityPoint, i: number) => (
-                        <li key={u.university}>
-                          <div className="flex items-center justify-between text-sm sm:text-base">
-                            <span className="text-slate-600 dark:text-slate-300 font-semibold truncate max-w-[70%]">
-                              <span className="text-slate-400 dark:text-slate-300 mr-2">#{i + 1}</span>{titleCase(u.university)}
-                            </span>
-                            <span className="font-bold text-slate-700 dark:text-slate-100 shrink-0 ml-4">{Number(u.avg_grade).toFixed(1)}%</span>
-                          </div>
-                          <div className="mt-1 px-2">
-                            <div className="relative h-2 w-full rounded-full bg-slate-100 overflow-hidden">
-                              <div
-                                className={`absolute left-0 top-0 h-2 rounded-full ${[
-                                  'bg-gradient-to-r from-teal-500 to-teal-300',
-                                  'bg-gradient-to-r from-blue-500 to-blue-300',
-                                  'bg-gradient-to-r from-violet-500 to-violet-300',
-                                  'bg-gradient-to-r from-pink-500 to-pink-300',
-                                  'bg-gradient-to-r from-amber-500 to-amber-300',
-                                ][i]}`}
-                                style={{ width: `${parseFloat(u.avg_grade.toString())}%`, minWidth: '10%' }}
-                              />
-                            </div>
-                          </div>
-                        </li>
-                      ));
-                    })()}
-                  </ul>
-                </div>,
-              ]}
-            />
-          </div>
-        ) : null}
-
-        {/* Search bar section below carousel */}
-                {/* KPI Cards */}
-                <div className="max-w-4xl mx-auto flex justify-center grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-                  {stats ? (
-                    <>
-                      <KPICard color="blue" label="Admission Records" value={stats.total_records.toLocaleString()} sub="total data points" icon={
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                      } />
-                      <KPICard color="mint" label="Programs Tracked" value={stats.total_programs.toLocaleString()} sub="unique programs" icon={
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-                      } />
-                      <KPICard color="purple" label="Universities Tracked" value={stats.total_universities.toLocaleString()} sub="unique universities" icon={
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                      } />
-                      <KPICard color="pink" label="Year Coverage" value={yearRange!} sub={`${stats.yearly_averages?.length} academic years`} icon={
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                      } />
-                    </>
-                  ) : (
-                    [1,2,3,4].map(i => (
-                      <div key={i} className="h-[88px] bg-white dark:bg-[#1e2a3a] rounded-2xl border border-slate-200 dark:border-slate-700 animate-pulse" />
-                    ))
-                  )}
+      {/* Chart + Top 5 carousel */}
+      {topHigh.length > 0 && (
+        <div className="max-w-shell mx-auto mt-10 sm:mt-[42px]">
+          <HorizontalCarousel
+            initialIndex={0}
+            slides={[
+              <div key="chart" className="h-full bg-card border-2 border-line rounded-card p-6 sm:px-8 sm:pt-[24px] sm:pb-[21px]">
+                <h2 className="text-base sm:text-lg font-semibold">Average Admission Grade Over Time</h2>
+                <p className="text-sm text-muted mt-1">Across all programs and universities</p>
+                {latestAvg && (
+                  <span className="inline-block mt-3.5 mb-2 bg-soft text-brand border-2 border-stroke rounded-full px-3.5 py-1 text-[12px] font-semibold">
+                    Latest: {Number(latestAvg.avg_grade).toFixed(1)}%
+                  </span>
+                )}
+                <div className="h-[152px] mt-1">
+                  <TrendLineChart data={stats!.yearly_averages} height="100%" />
                 </div>
-
-        
-        <div className="max-w-4xl mx-auto bg-white dark:bg-[#1e2a3a] border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm p-6">
-          <h2 className="text-2xl sm:text-4xl font-extrabold text-left mb-2">
-            <span className="bg-gradient-to-r from-cyan-500 to-blue-500 text-transparent bg-clip-text">Explore</span>
-            <span className="text-slate-800 dark:text-slate-100"> Programs</span>
-          </h2>
-          <p className="text-base text-slate-400 dark:text-slate-300 mb-4 text-left">Search by name, university, or OUAC code</p>
-          <SearchBar />
-          <p className="text-sm text-slate-400 dark:text-slate-300 mt-4">e.g. “Computer Science”, “Waterloo”, “WCS”</p>
+              </div>,
+              <TopFiveCard key="high" title="Top 5 Universities by Highest Average Admission Grade" rows={topHigh} />,
+              <TopFiveCard key="low" title="Top 5 Universities by Lowest Average Admission Grade" rows={topLow} />,
+            ]}
+          />
         </div>
+      )}
 
-        {/* Notes & Disclaimers Dropdown */}
-        <div className="max-w-4xl mx-auto">
-          <NotesDropdown />
+      {/* KPI row */}
+      {stats && (
+        <section className="max-w-shell mx-auto mt-10 sm:mt-11 grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+          <StatCard glyph="Ad" label="Admission Records" value={stats.total_records.toLocaleString()} sub="total data points" />
+          <StatCard glyph="Pr" label="Programs Tracked" value={stats.total_programs.toLocaleString()} sub="unique programs" />
+          <StatCard glyph="Un" label="Universities Tracked" value={stats.total_universities.toLocaleString()} sub="unique universities" />
+          <StatCard glyph="Yr" label="Year Coverage" value={yearRange ?? '—'} sub={`${stats.yearly_averages.length} academic years`} />
+        </section>
+      )}
+
+      {/* Search */}
+      <section className="max-w-shell mx-auto mt-7 bg-card border-2 border-line rounded-card p-6 sm:px-9 sm:pt-[27px] sm:pb-[30px]">
+        <h2 className="text-xl sm:text-[24px] font-semibold -tracking-[0.01em]">
+          <span className="text-brand">Explore</span> Programs
+        </h2>
+        <p className="text-[12px] text-muted mt-1">Search by name, university, or OUAC code</p>
+        <div className="mt-5">
+          <SearchBar size="hero" fill={fill} />
         </div>
+        <div className="flex items-center gap-2.5 mt-4 flex-wrap">
+          <span className="text-[12px] text-muted">Try</span>
+          {SUGGESTIONS.map(s => (
+            <button
+              key={s}
+              onClick={() => setFill(s)}
+              className="text-[12px] font-medium text-brand bg-soft border-2 border-stroke rounded-full px-3.5 py-1 transition-opacity hover:opacity-80"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      </section>
 
-        {/* Last Updated */}
-        {stats?.last_updated && (
-          <div className="max-w-4xl mx-auto">
-            <p className="text-sm text-slate-400 dark:text-slate-500">
-              Last updated: {new Date(stats.last_updated).toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
-            </p>
-          </div>
-        )}
-      </main>
+      {/* Notes */}
+      <div className="max-w-shell mx-auto mt-6">
+        <NotesDropdown />
+      </div>
+
+      {stats?.last_updated && (
+        <div className="max-w-shell mx-auto mt-[21px] text-[12px] text-muted">
+          Last updated:{' '}
+          {new Date(stats.last_updated).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })}
+        </div>
+      )}
     </div>
   );
 }

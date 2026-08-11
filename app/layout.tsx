@@ -2,7 +2,6 @@ import '../styles/globals.css';
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import ThemeProvider from '../components/theme/ThemeProvider';
-import ThemeToggle from '../components/theme/ThemeToggle';
 
 export const metadata: Metadata = {
   title: 'Ontario University Metrics',
@@ -14,6 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
+        {/* Applies the saved theme before paint so nothing flashes. */}
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
             var saved = localStorage.getItem('theme-pref');
@@ -28,15 +28,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           gtag('config', 'G-QZS1W0VTBJ');
         `}</Script>
       </head>
-      <body className="bg-gray-50 dark:bg-[#212121] text-gray-900 dark:text-white min-h-screen">
-        <ThemeProvider>
-          <header className="sticky top-0 z-40 bg-transparent">
-            <div className="max-w-6xl mx-auto px-5 sm:px-10 h-14 flex items-center justify-end">
-              <ThemeToggle />
-            </div>
-          </header>
-          {children}
-        </ThemeProvider>
+      {/* Background and text colour come from the CSS variables in globals.css.
+          The theme toggle lives inside each page so it aligns with that page's
+          content width, as in the mockups. */}
+      <body className="min-h-screen">
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

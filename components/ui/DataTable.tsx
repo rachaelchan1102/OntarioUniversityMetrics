@@ -7,11 +7,21 @@ interface Row {
   admission_grade: number;
   admission_month_label?: string;
   round_label?: string;
+  status_normalized?: string;
   supplemental_required: number;
 }
 
 const PAGE_SIZE = 25;
 
+const COLS = ['Year', 'Round', 'Grade', 'Status'];
+
+/**
+ * Records grid from the /mockups design: a bordered 4-column grid with a tinted
+ * header row rather than a <table>.
+ *
+ * Pagination is kept rather than the mockup's fixed "showing 5 of 47", since
+ * popular programs run to hundreds of rows.
+ */
 export default function DataTable({ rows }: { rows: Row[] }) {
   const [page, setPage] = useState(0);
   const pages = Math.ceil(rows.length / PAGE_SIZE);
@@ -19,46 +29,54 @@ export default function DataTable({ rows }: { rows: Row[] }) {
 
   if (!rows.length) return null;
 
+  const cellBase = 'px-3 sm:px-4 py-3 text-xs sm:text-sm border-b border-line';
+
   return (
     <div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left">
-          <thead>
-            <tr className="border-b border-slate-200 dark:border-slate-700">
-              <th className="py-2.5 pr-6 font-medium text-slate-500 dark:text-slate-200">Year</th>
-              <th className="py-2.5 pr-6 font-medium text-slate-500 dark:text-slate-200">Grade</th>
-              <th className="py-2.5 font-medium text-slate-500 dark:text-slate-200">Round / Month</th>
-            </tr>
-          </thead>
-          <tbody>
-            {slice.map((r) => (
-              <tr key={r.id} className="border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-white/5">
-                <td className="py-2.5 pr-6 text-slate-600 dark:text-slate-200">{r.academic_year}</td>
-                <td className="py-2.5 pr-6 font-semibold text-slate-900 dark:text-white">{r.admission_grade.toFixed(1)}%</td>
-                <td className="py-2.5 text-slate-500 dark:text-slate-300">{r.admission_month_label || r.round_label || '—'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="grid grid-cols-4 border-2 border-line rounded-[13px] overflow-hidden">
+        {COLS.map((c) => (
+          <div key={c} className={`${cellBase} bg-thead text-muted font-semibold`}>
+            {c}
+          </div>
+        ))}
+        {slice.map((r) => (
+          <div key={r.id} className="col-span-4 grid grid-cols-4">
+            <div className={`${cellBase} text-ink`}>{r.academic_year}</div>
+            <div className={`${cellBase} text-muted`}>{r.admission_month_label || r.round_label || '—'}</div>
+            <div className={`${cellBase} text-ink font-semibold`}>{r.admission_grade.toFixed(1)}%</div>
+            <div className={`${cellBase} text-muted capitalize`}>
+              {r.status_normalized === 'accepted' ? 'Admitted' : r.status_normalized || '—'}
+            </div>
+          </div>
+        ))}
       </div>
-      {pages > 1 && (
-          <div className="flex items-center justify-between mt-4 text-sm text-slate-500 dark:text-slate-300">
-          <span>{rows.length} records</span>
-          <div className="flex items-center gap-2">
+
+      <div className="flex items-center justify-between gap-4 mt-3 text-[12px] text-muted">
+        <span>
+          Showing {slice.length} of {rows.length} record{rows.length === 1 ? '' : 's'}
+        </span>
+        {pages > 1 && (
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-white/5 transition"
-            >Prev</button>
-            <span>{page + 1} / {pages}</span>
+              className="px-3 py-1 rounded-full border-2 border-line disabled:opacity-40 hover:bg-soft transition-colors"
+            >
+              Prev
+            </button>
+            <span>
+              {page + 1} / {pages}
+            </span>
             <button
               onClick={() => setPage((p) => Math.min(pages - 1, p + 1))}
               disabled={page === pages - 1}
-              className="px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-white/5 transition"
-            >Next</button>
+              className="px-3 py-1 rounded-full border-2 border-line disabled:opacity-40 hover:bg-soft transition-colors"
+            >
+              Next
+            </button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
