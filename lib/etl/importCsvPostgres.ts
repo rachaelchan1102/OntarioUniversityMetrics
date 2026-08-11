@@ -9,6 +9,7 @@ import { normalizeGrade, normalizeUniversity, normalizeProgram } from './normali
 import { normalizeDateFields } from './normalizeDates';
 import { buildOuacMap, backfillOuac } from './ouacBackfill';
 import { matchToOuac, queensArtsOverride } from './ouacValidation';
+import { cleanNote, extractQuartile } from './cleanNotes';
 import { logImportSummary, logUnmatchedOUAC } from './logs';
 import { query } from '../db/client-postgres';
 import { migrate } from '../db/schema-postgres';
@@ -96,6 +97,14 @@ export async function importAllCSVsPostgres({ rebuild = false } = {}) {
 				supplemental_required = /yes|1|true/i.test(String(val)) ? 1 : 0;
 			}
 
+			// Free-text columns. The supplemental-assessment quartile (CASPer for
+			// nursing, Western Engineering's SPF) is pulled into its own field and
+			// stripped from the prose so it isn't shown twice.
+			const suppRaw = mapping.supp_notes ? rec[mapping.supp_notes] : null;
+			const supp_quartile = extractQuartile(suppRaw);
+			const supp_notes = cleanNote(suppRaw, { removeQuartile: true });
+			const comments = cleanNote(mapping.comments ? rec[mapping.comments] : null);
+
 			// validate and canonicalize the OUAC code
 			let rawOuacCode = mapping.ouac_code ? rec[mapping.ouac_code] || null : null;
 			let ouac_code: string | null = null;
@@ -147,6 +156,9 @@ export async function importAllCSVsPostgres({ rebuild = false } = {}) {
 				admission_date_raw: dateRaw,
 				...dateFields,
 				supplemental_required,
+				supp_quartile,
+				supp_notes,
+				comments,
 				status_normalized: statusNorm,
 				source_file: file,
 				imported_at: new Date().toISOString(),
@@ -173,7 +185,8 @@ export async function importAllCSVsPostgres({ rebuild = false } = {}) {
 		'row_hash', 'academic_year', 'university', 'university_norm', 'program_name',
 		'program_name_norm', 'ouac_code', 'admission_grade', 'admission_date_raw',
 		'admission_date_iso', 'admission_month_iso', 'admission_month_label', 'admission_year',
-		'round_label', 'round_order', 'supplemental_required', 'status_normalized',
+		'round_label', 'round_order', 'supplemental_required', 'supp_quartile',
+		'supp_notes', 'comments', 'status_normalized',
 		'source_file', 'imported_at'
 	] as const;
 

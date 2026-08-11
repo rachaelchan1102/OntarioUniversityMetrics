@@ -1,5 +1,13 @@
-// This script extracts the main table from data/sheet.html and writes it as CSV to data/csv/2025-2026.csv
-// It matches the format of 2024-2025.csv: university,ouac_code,program_name,status,admission_grade,admission_date,supplemental_required
+// Extracts the main table from data/sheet.html and writes it as CSV to
+// data/csv/2025-2026.csv.
+//
+// Source spreadsheet column order (indices are hardcoded below — update them if
+// the sheet layout changes):
+//   0 University            5 Application date       10 Supp App?
+//   1 OUAC Code             6 Date of decision       11 Notable info from supp app
+//   2 Program name          7 Group A or B?          12 Comments
+//   3 Decision              8 Citizenship
+//   4 Top 6 Average         9 Province
 
 const fs = require('fs');
 const cheerio = require('cheerio');
@@ -14,7 +22,11 @@ const headers = [
   'status',
   'admission_grade',
   'admission_date',
-  'supplemental_required'
+  'supplemental_required',
+  // Free-text columns. The ETL cleans these (lib/etl/cleanNotes.ts) and pulls
+  // the supplemental-assessment quartile out of supp_notes into its own field.
+  'supp_notes',
+  'comments',
 ];
 
 const rows = [];
@@ -24,15 +36,17 @@ $('table.waffle > tbody > tr').each((i, tr) => {
   if (i === 0) return;
   const tds = $(tr).find('td');
   if (tds.length < 7) return;
-  // Extract and clean text for each column
+  const txt = (n) => (tds[n] ? $(tds[n]).text().trim() : '');
   const row = [
-    $(tds[0]).text().trim(), // university
-    $(tds[1]).text().trim(), // ouac_code
-    $(tds[2]).text().trim(), // program_name
-    $(tds[3]).text().trim(), // status
-    $(tds[4]).text().trim(), // admission_grade
-    $(tds[6]).text().trim(), // admission_date (should be the 7th column)
-    '' // supplemental_required (should be empty)
+    txt(0),  // university
+    txt(1),  // ouac_code
+    txt(2),  // program_name
+    txt(3),  // status
+    txt(4),  // admission_grade
+    txt(6),  // admission_date  (col 5 is the application date — not the decision date)
+    '',      // supplemental_required — derived by the ETL from the OUAC code
+    txt(11), // supp_notes
+    txt(12), // comments
   ];
   // Only add if at least university and program_name are present
   if (row[0] && row[2]) rows.push(row);

@@ -21,11 +21,24 @@ export async function ensureSchema() {
 			round_label TEXT,
 			round_order INTEGER,
 			supplemental_required INTEGER NOT NULL DEFAULT 0,
+			supp_quartile INTEGER,
+			supp_notes TEXT,
+			comments TEXT,
 			status_normalized TEXT NOT NULL,
 			source_file TEXT NOT NULL,
 			imported_at TEXT NOT NULL
 		)
 	`);
+
+	// The table predates these columns, and CREATE TABLE IF NOT EXISTS won't add
+	// them to an existing one, so bring older databases forward explicitly.
+	for (const col of [
+		'supp_quartile INTEGER',
+		'supp_notes TEXT',
+		'comments TEXT',
+	]) {
+		await query(`ALTER TABLE admissions ADD COLUMN IF NOT EXISTS ${col}`);
+	}
 
 	// Create indexes (Postgres syntax)
 	await query(`CREATE INDEX IF NOT EXISTS idx_program_lookup ON admissions (university_norm, program_name_norm)`);

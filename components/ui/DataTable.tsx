@@ -7,20 +7,29 @@ interface Row {
   admission_grade: number;
   admission_month_label?: string;
   round_label?: string;
-  status_normalized?: string;
+  supp_quartile?: number | null;
+  supp_notes?: string | null;
+  comments?: string | null;
   supplemental_required: number;
 }
 
 const PAGE_SIZE = 25;
 
-const COLS = ['Year', 'Round', 'Grade', 'Status'];
-
 /**
- * Records grid from the /mockups design: a bordered 4-column grid with a tinted
- * header row rather than a <table>.
+ * Records grid from the /mockups design: a bordered grid with a tinted header
+ * row rather than a <table>.
  *
- * Pagination is kept rather than the mockup's fixed "showing 5 of 47", since
- * popular programs run to hundreds of rows.
+ * The mockup's fourth column was "Status", but the ETL only imports accepted
+ * rows so that value never varies. It's replaced with the notes the submitter
+ * left, which is the column that actually carries information. The
+ * supplemental-assessment quartile (CASPer for nursing, Western Engineering's
+ * SPF) gets its own pill.
+ *
+ * Both extra columns only appear when the program has data for them, so
+ * programs without supplementals keep a clean three-column table.
+ *
+ * Pagination is kept rather than the mockup's fixed "5 of 47", since popular
+ * programs run to hundreds of rows.
  */
 export default function DataTable({ rows }: { rows: Row[] }) {
   const [page, setPage] = useState(0);
@@ -29,26 +38,58 @@ export default function DataTable({ rows }: { rows: Row[] }) {
 
   if (!rows.length) return null;
 
+  const hasNotes = rows.some(r => r.supp_notes || r.comments);
+  const hasQuartile = rows.some(r => r.supp_quartile != null);
+
+  const cols = [
+    'Year',
+    'Round',
+    'Grade',
+    ...(hasQuartile ? ['Quartile'] : []),
+    ...(hasNotes ? ['Notes'] : []),
+  ];
+  // Notes takes the remaining width; the rest size to content.
+  const gridStyle = {
+    gridTemplateColumns: `auto auto auto${hasQuartile ? ' auto' : ''}${hasNotes ? ' minmax(0,2fr)' : ''}`,
+  };
   const cellBase = 'px-3 sm:px-4 py-3 text-xs sm:text-sm border-b border-line';
 
   return (
     <div>
-      <div className="grid grid-cols-4 border-2 border-line rounded-[13px] overflow-hidden">
-        {COLS.map((c) => (
+      <div className="grid border-2 border-line rounded-[13px] overflow-hidden" style={gridStyle}>
+        {cols.map((c) => (
           <div key={c} className={`${cellBase} bg-thead text-muted font-semibold`}>
             {c}
           </div>
         ))}
-        {slice.map((r) => (
-          <div key={r.id} className="col-span-4 grid grid-cols-4">
-            <div className={`${cellBase} text-ink`}>{r.academic_year}</div>
-            <div className={`${cellBase} text-muted`}>{r.admission_month_label || r.round_label || '—'}</div>
-            <div className={`${cellBase} text-ink font-semibold`}>{r.admission_grade.toFixed(1)}%</div>
-            <div className={`${cellBase} text-muted capitalize`}>
-              {r.status_normalized === 'accepted' ? 'Admitted' : r.status_normalized || '—'}
+        {slice.map((r) => {
+          const note = [r.supp_notes, r.comments].filter(Boolean).join(' • ');
+          return (
+            <div key={r.id} className="col-span-full grid" style={gridStyle}>
+              <div className={`${cellBase} text-ink whitespace-nowrap`}>{r.academic_year}</div>
+              <div className={`${cellBase} text-muted whitespace-nowrap`}>
+                {r.admission_month_label || r.round_label || '—'}
+              </div>
+              <div className={`${cellBase} text-ink font-semibold whitespace-nowrap`}>
+                {r.admission_grade.toFixed(1)}%
+              </div>
+              {hasQuartile && (
+                <div className={`${cellBase} whitespace-nowrap`}>
+                  {r.supp_quartile != null ? (
+                    <span className="inline-block bg-soft text-brand border-2 border-stroke rounded-full px-2 py-0.5 text-[11px] font-semibold">
+                      Q{r.supp_quartile}
+                    </span>
+                  ) : (
+                    <span className="text-muted">—</span>
+                  )}
+                </div>
+              )}
+              {hasNotes && (
+                <div className={`${cellBase} text-muted`}>{note || '—'}</div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="flex items-center justify-between gap-4 mt-3 text-[12px] text-muted">

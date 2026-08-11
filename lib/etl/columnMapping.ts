@@ -40,6 +40,15 @@ const FIELD_ALIASES: Record<string, string[]> = {
 		'supplemental application', 'supplemental_app', 'supplemental requirement',
 		'supplemental',
 	],
+	// Free-text columns from the source sheet. Listed after supplemental_required
+	// so the more specific header wins the "supplemental" alias first.
+	supp_notes: [
+		'notable info from supp app', 'notable info', 'supp_notes', 'supp notes',
+		'supp app info', 'extracurriculars', 'notable',
+	],
+	comments: [
+		'comments', 'comment', 'additional info', 'notes', 'other info',
+	],
 };
 
 function normalizeHeader(header: string): string {
