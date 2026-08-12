@@ -6,8 +6,8 @@
 @tailwind utilities;
 
 /* ---------------------------------------------------------------------------
-   Design tokens, taken from the mockups in /mockups.
-   The mockups drive both themes off one set of CSS variables rather than
+   Design tokens, taken from the original design mockups.
+   Those mockups drive both themes off one set of CSS variables rather than
    duplicating colours per rule, so we do the same: `.dark` on <html> reassigns
    the vars and every `bg-card` / `border-line` / `text-ink` utility follows.
    Tailwind maps these to semantic colour names in tailwind.config.js.

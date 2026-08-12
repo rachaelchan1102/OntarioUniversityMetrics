@@ -1,4 +1,4 @@
-// Shared chart tokens matching the /mockups design.
+// Shared chart tokens matching the original design mockups.
 //
 // The mockups reference CSS custom properties directly from SVG presentation
 // attributes (e.g. stroke="var(--line)"), which resolve fine in the browser, so
@@ -20,7 +20,7 @@ export const gridProps = {
   vertical: false,
 } as const;
 
-export const axisTick = { fontSize: 12, fill: 'var(--muted)', fontFamily: 'Poppins' } as const;
+const axisTick = { fontSize: 12, fill: 'var(--muted)', fontFamily: 'Poppins' } as const;
 
 export const axisProps = {
   tick: axisTick,
@@ -39,10 +39,3 @@ export const tooltipStyle = {
   boxShadow: '0 6px 24px rgba(0,0,0,0.10)',
 } as const;
 
-export const tooltipLabelStyle = { color: 'var(--ink)', fontWeight: 600 } as const;
-export const tooltipItemStyle = { color: 'var(--muted)' } as const;
-
-/** Dot styling for line/area series. */
-export function dotProps(fill: string, r = 5.5) {
-  return { r, fill, stroke: STROKE, strokeWidth: 2.5 };
-}

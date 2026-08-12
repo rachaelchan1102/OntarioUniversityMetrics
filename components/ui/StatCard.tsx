@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 
 /**
- * Stat card from the /mockups design: a soft-filled glyph badge with a heavy
+ * Stat card from the original design mockups: a soft-filled glyph badge with a heavy
  * stroke outline, a small caps-ish label, a large brand-coloured value, and a
  * muted note.
  *

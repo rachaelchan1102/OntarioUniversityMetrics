@@ -1,7 +1,7 @@
 'use client';
 import Accordion, { AlertBadge } from './Accordion';
 
-// Styled to the /mockups design. The mockup's placeholder body was a single
+// Styled to the original design mockups. The mockup's placeholder body was a single
 // generic paragraph; the real disclaimers below are kept because they're
 // substantive and carry the data-source attribution.
 export default function NotesDropdown() {

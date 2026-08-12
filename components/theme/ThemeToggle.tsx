@@ -1,7 +1,7 @@
 'use client';
 import { useTheme } from './ThemeProvider';
 
-// Square 44px button with a 14px radius, per the /mockups design.
+// Square 44px button with a 14px radius, per the original design mockups.
 export default function ThemeToggle() {
   const { dark, toggle } = useTheme();
   return (

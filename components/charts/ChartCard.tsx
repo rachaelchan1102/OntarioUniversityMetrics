@@ -1,4 +1,4 @@
-// Section card wrapper from the /mockups design.
+// Section card wrapper from the original design mockups.
 export default function ChartCard({
   title,
   subtitle,

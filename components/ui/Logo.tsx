@@ -1,10 +1,10 @@
-// Brand mark from the /mockups design: a bar-chart trio wearing a grad cap.
+// Brand mark from the original design mockups: a bar-chart trio wearing a grad cap.
 //
-// Drawn inline rather than using the PNG lockup in /public because the mockup
-// strokes it with var(--stroke) — that makes it theme-aware from one source
-// instead of needing separate light/dark image assets. The ramp fills are
-// intentionally constant across themes, matching the mockup.
-export function LogoMark({ className = 'w-[76px] h-[76px] sm:w-[116px] sm:h-[116px]' }: { className?: string }) {
+// Drawn inline rather than as an image because the mockup strokes it with
+// var(--stroke) — that makes it theme-aware from one source instead of needing
+// separate light/dark PNG lockups (which is why those assets were dropped).
+// The ramp fills are intentionally constant across themes, matching the mockup.
+function LogoMark({ className = 'w-[76px] h-[76px] sm:w-[116px] sm:h-[116px]' }: { className?: string }) {
   return (
     <svg viewBox="0 0 88 88" fill="none" className={`${className} shrink-0`} aria-hidden="true">
       <rect x="16" y="52" width="16" height="22" rx="8" fill="#dae8f4" stroke="var(--stroke)" strokeWidth="2.5" />
@@ -20,19 +20,7 @@ export function LogoMark({ className = 'w-[76px] h-[76px] sm:w-[116px] sm:h-[116
 }
 
 /** Full lockup: mark + "ONTARIO / University Metrics" wordmark. */
-export default function Logo({ compact = false }: { compact?: boolean }) {
-  if (compact) {
-    return (
-      <span className="flex items-center gap-2.5">
-        <LogoMark className="w-8 h-8" />
-        <span className="flex flex-col items-start leading-none">
-          <span className="text-[12px] font-medium text-brand tracking-wordmark">ONTARIO</span>
-          <span className="text-[12px] font-semibold -tracking-[0.02em] whitespace-nowrap">University Metrics</span>
-        </span>
-      </span>
-    );
-  }
-
+export default function Logo() {
   return (
     <span className="flex items-center gap-4 sm:gap-5">
       <LogoMark />

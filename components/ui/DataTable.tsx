@@ -16,7 +16,7 @@ interface Row {
 const PAGE_SIZE = 25;
 
 /**
- * Records grid from the /mockups design: a bordered grid with a tinted header
+ * Records grid from the original design mockups: a bordered grid with a tinted header
  * row rather than a <table>.
  *
  * The mockup's fourth column was "Status", but the ETL only imports accepted

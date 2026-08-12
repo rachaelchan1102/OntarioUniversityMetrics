@@ -19,7 +19,7 @@ const RIGHT = 885;
 const MID_Y = 60;
 
 /**
- * Interquartile range plot from the /mockups design: whisker line with end
+ * Interquartile range plot from the original design mockups: whisker line with end
  * caps, a soft-filled IQR box, a brand median rule, an amber mean dot, then a
  * five-cell quartile readout and a legend.
  */

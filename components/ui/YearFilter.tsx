@@ -1,7 +1,7 @@
 'use client';
 import { useRouter, usePathname } from 'next/navigation';
 
-// Pill row from the /mockups design: active pill is solid brand with white text,
+// Pill row from the original design mockups: active pill is solid brand with white text,
 // inactive pills are card-coloured. Both carry the heavy 2px stroke outline.
 export default function YearFilter({
   years,

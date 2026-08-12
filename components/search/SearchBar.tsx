@@ -12,7 +12,7 @@ interface Result {
 }
 
 /**
- * Pill search field from the /mockups design.
+ * Pill search field from the original design mockups.
  *
  * `size="hero"` is the tall 56px version inside the homepage "Explore Programs"
  * card; `size="bar"` is the 48px version in the program page header.

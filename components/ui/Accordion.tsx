@@ -2,7 +2,7 @@
 import { ReactNode, useState } from 'react';
 
 /**
- * Disclosure panel from the /mockups design — used for "Notes & Disclaimers" on
+ * Disclosure panel from the original design mockups — used for "Notes & Disclaimers" on
  * the homepage and "All Records" on the program page. Header is a full-width
  * button with a Show/Hide affordance pushed to the right.
  */

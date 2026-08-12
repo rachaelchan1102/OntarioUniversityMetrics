@@ -126,6 +126,7 @@ OntarioUniversityMetrics/
 │   │   ├── ouacBackfill.ts      # Backfill missing codes from matched rows
 │   │   ├── ouacPrograms.json    # Scraped OUAC program database (1,409 programs)
 │   │   ├── similarity.ts        # Jaccard token-set similarity
+│   │   ├── cleanNotes.ts        # Normalizes the free-text note columns
 │   │   ├── supplementalCodes.ts # 52 OUAC codes requiring supplemental apps
 │   │   ├── admissionAverages.ts # University-published admission averages
 │   │   └── logs.ts              # Import logging utilities
@@ -163,7 +164,8 @@ OntarioUniversityMetrics/
 ├── .claude/skills/
 │   └── update-admissions-data/  # Agent skill automating the data refresh
 │
-├── public/                       # Static assets (logo)
+├── public/                       # Static assets (favicon only — the header logo
+│                                 #   is inline SVG in components/ui/Logo.tsx)
 ├── styles/
 │   └── globals.css              # Global styles + Tailwind imports
 │
@@ -258,6 +260,9 @@ CREATE TABLE IF NOT EXISTS admissions (
 
   -- Metadata
   supplemental_required INTEGER NOT NULL DEFAULT 0,  -- 1 if supp app needed
+  supp_quartile INTEGER,              -- 1-4 scored-supplemental band (CASPer / Western SPF)
+  supp_notes TEXT,                    -- cleaned "Notable info from supp app"
+  comments TEXT,                      -- cleaned "Comments"
   status_normalized TEXT NOT NULL,    -- always "accepted" in practice
   source_file TEXT NOT NULL,          -- "2024-2025.csv"
   imported_at TEXT NOT NULL           -- ISO timestamp (drives "last updated")
@@ -1034,6 +1039,16 @@ for Neon's WebSocket transport, but that script never runs on Vercel. It's in `d
 local `--omit=dev` install can still run the import; moving it to `devDependencies` would shrink
 the deployed tree slightly at the cost of that guarantee.
 
+**Free-text columns are unvetted.** `supp_notes` and `comments` are shown verbatim
+(after mechanical cleaning) on program pages. They occasionally contain claims about
+named third parties. `cleanNotes.ts` normalizes formatting and drops noise; it makes
+no judgement about content.
+
+**Usernames sit in two source CSVs.** `data/csv/2022-2023.csv` and `2023-2024.csv`
+carry Reddit/Discord handles (797 / 1,376 / 399 populated cells). The ETL does not
+import them — no column alias matches — so they never reach the database or the site,
+but they are committed and present in git history.
+
 ### Fixed previously (kept for context)
 
 - **Unbatched inserts** — now genuine multi-row `INSERT`s, ~65× fewer round-trips.
@@ -1046,6 +1061,9 @@ the deployed tree slightly at the cost of that guarantee.
   (`"Queen's"`) instead of `university_norm`, so it silently did nothing. Now active on 53 rows.
   No change to current data (those rows already carry `QA` in the sheet), but it stops 32 of them
   fragmenting if the OUAC column is ever left blank.
+- **The always-constant Status column** — the records table showed `status_normalized`,
+  which is always "accepted" because the ETL imports offers only. Replaced with the
+  submitter's notes and a supplemental quartile pill.
 - **Dead code** — removed `getProgramBySlug`/`getProgramIdentifier`/`getProgramDisplayInfo`,
   `computeInsights`, `levenshteinSimilarity`, four unused components
   (`AlternatingTop5Lists`, `KPIGrid`, `Skeletons`, `VerticalCarousel`), and seven unused

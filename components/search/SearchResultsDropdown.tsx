@@ -6,7 +6,7 @@ interface Result {
   n_total: number;
 }
 
-// Restyled to the /mockups token set: card surface, 2px line border, big radius.
+// Restyled to the the original design mockups token set: card surface, 2px line border, big radius.
 export default function SearchResultsDropdown({
   results,
   onSelect,
