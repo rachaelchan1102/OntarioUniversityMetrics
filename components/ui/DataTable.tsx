@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 
 interface Row {
   id: number;
@@ -48,9 +48,14 @@ export default function DataTable({ rows }: { rows: Row[] }) {
     ...(hasQuartile ? ['Quartile'] : []),
     ...(hasNotes ? ['Notes'] : []),
   ];
-  // Notes takes the remaining width; the rest size to content.
+  // Every cell is a direct child of ONE grid so the header and body share column
+  // tracks. Wrapping each row in its own nested grid created a separate
+  // formatting context per row, and nothing lined up with the header.
+  // The first columns size to their content; Notes absorbs what's left.
   const gridStyle = {
-    gridTemplateColumns: `auto auto auto${hasQuartile ? ' auto' : ''}${hasNotes ? ' minmax(0,2fr)' : ''}`,
+    gridTemplateColumns: `max-content max-content max-content${hasQuartile ? ' max-content' : ''}${
+      hasNotes ? ' minmax(0,1fr)' : ''
+    }`,
   };
   const cellBase = 'px-3 sm:px-4 py-3 text-xs sm:text-sm border-b border-line';
 
@@ -58,19 +63,19 @@ export default function DataTable({ rows }: { rows: Row[] }) {
     <div>
       <div className="grid border-2 border-line rounded-[13px] overflow-hidden" style={gridStyle}>
         {cols.map((c) => (
-          <div key={c} className={`${cellBase} bg-thead text-muted font-semibold`}>
+          <div key={c} className={`${cellBase} bg-thead text-muted font-semibold whitespace-nowrap`}>
             {c}
           </div>
         ))}
         {slice.map((r) => {
           const note = [r.supp_notes, r.comments].filter(Boolean).join(' • ');
           return (
-            <div key={r.id} className="col-span-full grid" style={gridStyle}>
+            <Fragment key={r.id}>
               <div className={`${cellBase} text-ink whitespace-nowrap`}>{r.academic_year}</div>
               <div className={`${cellBase} text-muted whitespace-nowrap`}>
                 {r.admission_month_label || r.round_label || '—'}
               </div>
-              <div className={`${cellBase} text-ink font-semibold whitespace-nowrap`}>
+              <div className={`${cellBase} text-ink font-semibold whitespace-nowrap tabular-nums`}>
                 {r.admission_grade.toFixed(1)}%
               </div>
               {hasQuartile && (
@@ -85,9 +90,11 @@ export default function DataTable({ rows }: { rows: Row[] }) {
                 </div>
               )}
               {hasNotes && (
-                <div className={`${cellBase} text-muted`}>{note || '—'}</div>
+                <div className={`${cellBase} text-muted align-top`}>
+                  {note ? <span className="line-clamp-3">{note}</span> : '—'}
+                </div>
               )}
-            </div>
+            </Fragment>
           );
         })}
       </div>
