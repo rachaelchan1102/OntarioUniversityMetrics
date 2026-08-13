@@ -52,18 +52,32 @@ export default function HorizontalCarousel({
   }, [autoPlayMs, paused, count, nudge]);
 
   // Track viewport width (for slide sizing) and the tallest slide (for height).
+  //
+  // Both setters bail out when the value is unchanged. Writing state on every
+  // ResizeObserver callback re-rendered the whole carousel (and its charts) on
+  // each observation, which is what produces "ResizeObserver loop completed with
+  // undelivered notifications" in the console. The rAF defers the measurement
+  // out of the observer callback, which is the other half of that fix.
   useEffect(() => {
+    let frame = 0;
     const measure = () => {
-      if (viewportRef.current) setViewportW(viewportRef.current.clientWidth);
-      const heights = slideRefs.current.map(el => el?.offsetHeight ?? 0);
-      const tallest = Math.max(0, ...heights);
-      if (tallest) setMaxH(tallest);
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const w = viewportRef.current?.clientWidth ?? 0;
+        if (w) setViewportW(prev => (prev === w ? prev : w));
+        const heights = slideRefs.current.map(el => el?.offsetHeight ?? 0);
+        const tallest = Math.max(0, ...heights);
+        if (tallest) setMaxH(prev => (prev === tallest ? prev : tallest));
+      });
     };
     measure();
     const ro = new ResizeObserver(measure);
     if (viewportRef.current) ro.observe(viewportRef.current);
     slideRefs.current.forEach(el => el && ro.observe(el));
-    return () => ro.disconnect();
+    return () => {
+      cancelAnimationFrame(frame);
+      ro.disconnect();
+    };
   }, [count]);
 
   if (!count) return null;

@@ -1,21 +1,27 @@
-// Brand mark from the original design mockups: a bar-chart trio wearing a grad cap.
+import Image from 'next/image';
+
+// Brand mark: the 3D-rendered mascot in /public/oum-mascot.png — three bars with
+// the tallest wearing a grad cap.
 //
-// Drawn inline rather than as an image because the mockup strokes it with
-// var(--stroke) — that makes it theme-aware from one source instead of needing
-// separate light/dark PNG lockups (which is why those assets were dropped).
-// The ramp fills are intentionally constant across themes, matching the mockup.
-function LogoMark({ className = 'w-[76px] h-[76px] sm:w-[116px] sm:h-[116px]' }: { className?: string }) {
+// This replaced a hand-drawn inline SVG version. The SVG was theme-aware via
+// var(--stroke), which an image can't be; this render carries its own shading
+// and reads on both backgrounds, so no light/dark pair is needed.
+//
+// Source is 2048x2048; next/image serves a resized variant per breakpoint, so
+// the browser never downloads the full asset for a ~116px mark.
+// Sized larger than the old SVG mark because this artwork carries ~13% transparent
+// padding on each side, so the mascot occupies roughly three quarters of its box.
+function LogoMark({ className = 'w-[108px] h-[108px] sm:w-[164px] sm:h-[164px]' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 88 88" fill="none" className={`${className} shrink-0`} aria-hidden="true">
-      <rect x="16" y="52" width="16" height="22" rx="8" fill="#dae8f4" stroke="var(--stroke)" strokeWidth="2.5" />
-      <rect x="36" y="42" width="16" height="32" rx="8" fill="#9dbdd8" stroke="var(--stroke)" strokeWidth="2.5" />
-      <rect x="56" y="30" width="16" height="44" rx="8" fill="#3f6188" stroke="var(--stroke)" strokeWidth="2.5" />
-      <path d="M51 25 L64 19 L77 25 L64 31 Z" fill="#f0c987" stroke="var(--stroke)" strokeWidth="2.5" strokeLinejoin="round" />
-      <path d="M77 25 V33 C77 35 74.4 35 74.4 33" stroke="var(--stroke)" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-      <circle cx="61" cy="41" r="1.9" fill="#fdfcfa" />
-      <circle cx="68" cy="41" r="1.9" fill="#fdfcfa" />
-      <path d="M61 46 C62.7 48.4 66.3 48.4 68 46" stroke="#fdfcfa" strokeWidth="2" strokeLinecap="round" fill="none" />
-    </svg>
+    <Image
+      src="/oum-mascot.png"
+      alt=""
+      aria-hidden="true"
+      width={2048}
+      height={2048}
+      priority
+      className={`${className} shrink-0 object-contain`}
+    />
   );
 }
 
