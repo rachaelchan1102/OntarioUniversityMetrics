@@ -11,7 +11,7 @@ import Image from 'next/image';
 // the browser never downloads the full asset for a ~116px mark.
 // Sized larger than the old SVG mark because this artwork carries ~13% transparent
 // padding on each side, so the mascot occupies roughly three quarters of its box.
-function LogoMark({ className = 'w-[108px] h-[108px] sm:w-[164px] sm:h-[164px]' }: { className?: string }) {
+function LogoMark({ className = 'w-[84px] h-[84px] sm:w-[164px] sm:h-[164px]' }: { className?: string }) {
   return (
     <Image
       src="/oum-mascot.png"
@@ -28,13 +28,17 @@ function LogoMark({ className = 'w-[108px] h-[108px] sm:w-[164px] sm:h-[164px]' 
 /** Full lockup: mark + "ONTARIO / University Metrics" wordmark. */
 export default function Logo() {
   return (
-    <span className="flex items-center gap-4 sm:gap-5">
+    // min-w-0 lets the text column shrink inside the flex row; without it a
+    // flex item refuses to go below its content width and pushes the whole
+    // header past the viewport on narrow screens.
+    <span className="flex items-center gap-3 sm:gap-5 min-w-0">
       <LogoMark />
-      <span className="flex flex-col items-start">
-        <span className="text-base sm:text-[23px] font-medium text-brand tracking-wordmark leading-none mb-1.5 sm:mb-2">
+      <span className="flex flex-col items-start min-w-0">
+        <span className="text-sm sm:text-[23px] font-medium text-brand tracking-wordmark leading-none mb-1 sm:mb-2">
           ONTARIO
         </span>
-        <span className="text-[34px] sm:text-[60px] font-semibold -tracking-[0.02em] leading-[1.05] whitespace-nowrap">
+        {/* Wraps to two lines on phones; stays on one line from sm: up. */}
+        <span className="text-[28px] sm:text-[60px] font-semibold -tracking-[0.02em] leading-[1.05] sm:whitespace-nowrap">
           University Metrics
         </span>
       </span>

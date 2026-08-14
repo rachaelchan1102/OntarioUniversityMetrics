@@ -61,7 +61,11 @@ export default function DataTable({ rows }: { rows: Row[] }) {
 
   return (
     <div>
-      <div className="grid border-2 border-line rounded-[13px] overflow-hidden" style={gridStyle}>
+      {/* The Year/Round/Grade/Quartile columns are max-content and nowrap, so on a
+          phone they can exceed the viewport. Scroll the table inside its own box
+          rather than letting it widen the page. */}
+      <div className="overflow-x-auto">
+        <div className="grid border-2 border-line rounded-[13px] overflow-hidden" style={gridStyle}>
         {cols.map((c) => (
           <div key={c} className={`${cellBase} bg-thead text-muted font-semibold whitespace-nowrap`}>
             {c}
@@ -97,6 +101,7 @@ export default function DataTable({ rows }: { rows: Row[] }) {
             </Fragment>
           );
         })}
+        </div>
       </div>
 
       <div className="flex items-center justify-between gap-4 mt-3 text-[12px] text-muted">
